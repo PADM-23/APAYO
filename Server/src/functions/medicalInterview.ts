@@ -59,11 +59,20 @@ function aiErrorResponse(error: unknown, context: InvocationContext): HttpRespon
     };
 }
 
-async function readJSON(request: HttpRequest): Promise<unknown | HttpResponseInit> {
+type ReadJSONResult =
+    | { ok: true; value: unknown }
+    | { ok: false; response: HttpResponseInit };
+
+async function readJSON(request: HttpRequest): Promise<ReadJSONResult> {
     try {
-        return await request.json();
+        return { ok: true, value: await request.json() };
     } catch {
-        return invalidRequest([{ path: [], message: "Request body must be valid JSON" }]);
+        return {
+            ok: false,
+            response: invalidRequest([
+                { path: [], message: "Request body must be valid JSON" }
+            ])
+        };
     }
 }
 
@@ -71,12 +80,12 @@ export async function followUpQuestions(
     request: HttpRequest,
     context: InvocationContext
 ): Promise<HttpResponseInit> {
-    const body = await readJSON(request);
-    if (isHttpResponse(body)) {
-        return body;
+    const result = await readJSON(request);
+    if (!result.ok) {
+        return result.response;
     }
 
-    const validation = followUpQuestionsRequestSchema.safeParse(body);
+    const validation = followUpQuestionsRequestSchema.safeParse(result.value);
     if (!validation.success) {
         return invalidRequest(validation.error.issues.map(issue => ({
             path: issue.path,
@@ -104,12 +113,12 @@ export async function medicalInterviewSummary(
     request: HttpRequest,
     context: InvocationContext
 ): Promise<HttpResponseInit> {
-    const body = await readJSON(request);
-    if (isHttpResponse(body)) {
-        return body;
+    const result = await readJSON(request);
+    if (!result.ok) {
+        return result.response;
     }
 
-    const validation = medicalInterviewSummaryRequestSchema.safeParse(body);
+    const validation = medicalInterviewSummaryRequestSchema.safeParse(result.value);
     if (!validation.success) {
         return invalidRequest(validation.error.issues.map(issue => ({
             path: issue.path,
@@ -131,10 +140,6 @@ export async function medicalInterviewSummary(
     } catch (error) {
         return aiErrorResponse(error, context);
     }
-}
-
-function isHttpResponse(value: unknown): value is HttpResponseInit {
-    return typeof value === "object" && value !== null && "status" in value;
 }
 
 app.http("followUpQuestions", {
