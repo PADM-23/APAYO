@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "input": {
+    "text": "Masakit ang ulo ko at nahihilo ako simula kaninang umaga.",
+    "language_hint": "tl"
+  },
+  "work_context": {
+    "worked_today": true,
+    "work_type": "outdoor_farm_work",
+    "pesticide_exposure": "unknown",
+    "injury_or_fall": "unknown"
+  },
+  "weather_context": {
+    "observed_at": "2026-08-22T14:00:00+09:00",
+    "temperature_celsius": 34.2,
+    "humidity_percent": 71,
+    "heat_warning": true
+  },
+  "allowed_card_ids": [
+    "card_default",
+    "card_chest_tightness",
+    "card_chills",
+    "card_cough",
+    "card_dizziness",
+    "card_headache",
+    "card_hives",
+    "card_stomachache",
+    "card_toothache",
+    "card_vomiting"
+  ],
+  "allowed_question_ids": [
+    "q_onset",
+    "q_severity",
+    "q_getting_worse",
+    "q_fever",
+    "q_breathing_difficulty",
+    "q_loss_of_consciousness",
+    "q_heat_exposure",
+    "q_water_intake",
+    "q_pesticide_exposure",
+    "q_injury_or_fall",
+    "q_insect_bite",
+    "q_other_medication"
+  ]
+}
