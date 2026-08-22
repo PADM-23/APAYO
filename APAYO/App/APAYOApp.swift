@@ -4,8 +4,7 @@ import SwiftUI
 struct APAYOApp: App {
     var body: some Scene {
         WindowGroup {
-            HomeView()
+            PatientFlowView()
         }
     }
 }
-
