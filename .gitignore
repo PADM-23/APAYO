@@ -18,3 +18,12 @@ Secrets.xcconfig
 # macOS
 .DS_Store
 
+# 공공데이터 원본
+DataPipeline/raw/*.xlsx
+
+# 변환 중간 파일
+DataPipeline/output/*
+
+# Python 임시 파일
+__pycache__/
+*.py[cod]
