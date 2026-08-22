@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-import { CARD_IDS, QUESTION_IDS } from "../contracts/symptomAnalysis";
+import {
+    CARD_IDS,
+    QUESTION_IDS,
+    SAFETY_FLAGS
+} from "../contracts/symptomAnalysis";
 
 const exposureStatusSchema = z.enum(["yes", "no", "unknown"]);
 
@@ -44,4 +48,30 @@ export const symptomAnalysisRequestSchema = z.object({
     weather_context: weatherContextSchema.nullable(),
     allowed_card_ids: allowedCardIDsSchema,
     allowed_question_ids: allowedQuestionIDsSchema
+}).strict();
+
+export const symptomAnalysisResponseSchema = z.object({
+    schema_version: z.literal("1.0"),
+    detected_language: z.object({
+        code: z.string().trim().min(1).max(20),
+        name: z.string().trim().min(1).max(100)
+    }).strict(),
+    symptoms: z.array(z.object({
+        name_ko: z.string().trim().min(1).max(100),
+        body_part_ko: z.string().trim().min(1).max(100).nullable(),
+        onset_text_ko: z.string().trim().min(1).max(200).nullable(),
+        severity: z.number().int().min(0).max(10).nullable()
+    }).strict()).min(1).max(5),
+    selected_card_id: z.enum(CARD_IDS),
+    selected_question_ids: z.array(z.enum(QUESTION_IDS))
+        .min(2)
+        .max(4)
+        .refine(ids => new Set(ids).size === ids.length, {
+            message: "selected_question_ids must not contain duplicates"
+        }),
+    safety_flags: z.array(z.enum(SAFETY_FLAGS))
+        .refine(flags => new Set(flags).size === flags.length, {
+            message: "safety_flags must not contain duplicates"
+        }),
+    clarification_note_ko: z.string().trim().min(1).max(500).nullable()
 }).strict();

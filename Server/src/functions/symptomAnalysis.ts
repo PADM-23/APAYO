@@ -1,9 +1,11 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 
 import {
-    SymptomAnalysisRequest,
-    SymptomAnalysisResponse
-} from "../contracts/symptomAnalysis";
+    analyzeSymptomsWithAzureOpenAI,
+    AzureOpenAIConfigurationError,
+    AzureOpenAIRequestError
+} from "../ai/azureOpenAI";
+import { SymptomAnalysisRequest } from "../contracts/symptomAnalysis";
 import { symptomAnalysisRequestSchema } from "../validation/symptomAnalysisSchema";
 
 function invalidRequest(details: unknown): HttpResponseInit {
@@ -48,30 +50,43 @@ export async function symptomAnalysis(
         hasWeatherContext: validRequest.weather_context !== null
     });
 
-    const response: SymptomAnalysisResponse = {
-        schema_version: "1.0",
-        detected_language: {
-            code: validRequest.input.language_hint ?? "und",
-            name: validRequest.input.language_hint ?? "Unknown"
-        },
-        symptoms: [
-            {
-                name_ko: "확인 필요",
-                body_part_ko: null,
-                onset_text_ko: null,
-                severity: null
-            }
-        ],
-        selected_card_id: "card_default",
-        selected_question_ids: ["q_onset", "q_severity"],
-        safety_flags: [],
-        clarification_note_ko: "현재는 Azure OpenAI 연결 전 가짜 응답입니다."
-    };
+    try {
+        const response = await analyzeSymptomsWithAzureOpenAI(validRequest);
 
-    return {
-        status: 200,
-        jsonBody: response
-    };
+        return {
+            status: 200,
+            jsonBody: response
+        };
+    } catch (error) {
+        if (error instanceof AzureOpenAIConfigurationError) {
+            context.error("Azure OpenAI is not configured");
+            return {
+                status: 503,
+                jsonBody: {
+                    error: {
+                        code: "ai_not_configured",
+                        message: "AI 서비스가 아직 설정되지 않았습니다."
+                    }
+                }
+            };
+        }
+
+        if (error instanceof AzureOpenAIRequestError) {
+            context.error("Azure OpenAI request failed", { status: error.status });
+        } else {
+            context.error("Unexpected symptom analysis error");
+        }
+
+        return {
+            status: 502,
+            jsonBody: {
+                error: {
+                    code: "ai_request_failed",
+                    message: "AI 분석을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요."
+                }
+            }
+        };
+    }
 }
 
 app.http("symptomAnalysis", {
