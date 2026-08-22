@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct HomeView: View {
+    @EnvironmentObject private var languageStore: AppLanguageStore
     var onStart: () -> Void = {}
 
     var body: some View {
@@ -13,17 +14,17 @@ struct HomeView: View {
                 .accessibilityHidden(true)
 
             VStack(spacing: 8) {
-                Text("아파요")
+                Text(languageStore.language.localized("home.title"))
                     .font(.largeTitle.bold())
 
-                Text("편한 언어로 증상을 알려주세요.\n진료에 필요한 내용을 함께 정리해 드릴게요.")
+                Text(languageStore.language.localized("home.subtitle"))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
             }
 
             Spacer()
 
-            APAYOButton(title: "문진 시작하기", systemImage: "arrow.right", action: onStart)
+            APAYOButton(title: LocalizedStringKey(languageStore.language.localized("home.start")), systemImage: "arrow.right", action: onStart)
         }
         .padding(APAYOTheme.horizontalPadding)
         .background(Color.apayoBackground.ignoresSafeArea())
@@ -32,4 +33,5 @@ struct HomeView: View {
 
 #Preview {
     HomeView()
+        .environmentObject(AppLanguageStore())
 }

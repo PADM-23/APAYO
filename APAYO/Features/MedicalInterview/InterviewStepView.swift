@@ -3,18 +3,24 @@ import SwiftUI
 private struct InterviewHeader: View {
     let title: String
     let subtitle: String
-    var step: (current: Int, total: Int)?
+    let completedSteps: Int
+    var substep: (current: Int, total: Int)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if let step {
-                APAYOProgressBar(currentStep: step.current, totalSteps: step.total)
-                    .padding(.bottom, 20)
+            InterviewProgressLine(completedSteps: completedSteps)
+
+            if let substep {
+                Text("\(substep.current)/\(substep.total)")
+                    .font(.headline)
+                    .foregroundStyle(Color.apayoGreen)
+                    .padding(.top, 16)
             }
 
             Text(title)
                 .font(.title2.bold())
                 .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, substep == nil ? 58 : 20)
 
             Text(subtitle)
                 .font(.body)
@@ -26,30 +32,41 @@ private struct InterviewHeader: View {
 }
 
 struct SingleChoiceInterviewView: View {
+    @EnvironmentObject private var languageStore: AppLanguageStore
     let title: String
     let subtitle: String
     let step: (current: Int, total: Int)?
     let options: [String]
+    @Binding var selection: String?
     let onNext: () -> Void
 
-    @State private var selection: String?
+    @State private var isCustomInputPresented = false
+    @State private var customInput = ""
 
     var body: some View {
         VStack(spacing: 0) {
-            InterviewHeader(title: title, subtitle: subtitle, step: step)
-                .padding(.top, 42)
+            InterviewHeader(
+                title: title,
+                subtitle: subtitle,
+                completedSteps: 0,
+                substep: step
+            )
+            .padding(.top, 10)
 
             VStack(spacing: 8) {
-                ForEach(options, id: \.self) { option in
-                    InterviewOptionButton(title: option, isSelected: selection == option) {
+                ForEach(displayedOptions, id: \.self) { option in
+                    InterviewOptionButton(title: display(option), isSelected: selection == option) {
                         selection = option
                     }
                 }
 
                 Button {
-                    // Figma에는 직접 입력의 다음 화면이 아직 없습니다.
+                    if let selection, !options.contains(selection) {
+                        customInput = selection
+                    }
+                    isCustomInputPresented = true
                 } label: {
-                    Label("직접입력", systemImage: "plus")
+                    Label(languageStore.language.localized("common.custom"), systemImage: "plus")
                         .font(.callout.weight(.semibold))
                         .foregroundStyle(Color.apayoGreen)
                         .frame(maxWidth: .infinity, minHeight: 48)
@@ -58,11 +75,32 @@ struct SingleChoiceInterviewView: View {
             .padding(.top, 26)
 
             Spacer()
-            APAYOButton(title: "다음", isDisabled: selection == nil, action: onNext)
+            APAYOButton(title: LocalizedStringKey(languageStore.language.localized("common.next")), isDisabled: selection == nil, action: onNext)
         }
         .padding(.horizontal, APAYOTheme.horizontalPadding)
         .background(Color(.systemBackground).ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $isCustomInputPresented) {
+            APAYOCustomInputSheet(
+                placeholder: languageStore.language.localized("custom.situation_placeholder"),
+                text: $customInput
+            ) {
+                selection = customInput.trimmingCharacters(in: .whitespacesAndNewlines)
+                isCustomInputPresented = false
+            }
+            .presentationDetents([.height(280)])
+            .presentationDragIndicator(.visible)
+            .presentationCornerRadius(34)
+        }
+    }
+
+    private var displayedOptions: [String] {
+        guard let selection, !options.contains(selection) else { return options }
+        return options + [selection]
+    }
+
+    private func display(_ value: String) -> String {
+        options.contains(value) ? languageStore.language.localized(value) : value
     }
 }
 
@@ -91,16 +129,18 @@ private struct InterviewOptionButton: View {
 }
 
 struct PainIntensityView: View {
+    @EnvironmentObject private var languageStore: AppLanguageStore
+    @Binding var intensity: Int?
     let onNext: () -> Void
-    @State private var intensity = 2
 
     var body: some View {
         VStack(spacing: 0) {
             InterviewHeader(
-                title: "가장 심했을 때 통증은\n어느 정도였나요?",
-                subtitle: "0점부터 10점까지 점수를 매겨주세요."
+                title: languageStore.language.localized("interview.intensity.title"),
+                subtitle: languageStore.language.localized("interview.intensity.subtitle"),
+                completedSteps: 1
             )
-            .padding(.top, 88)
+            .padding(.top, 10)
 
             HStack(spacing: 4) {
                 ForEach(1...10, id: \.self) { value in
@@ -108,29 +148,34 @@ struct PainIntensityView: View {
                         intensity = value
                     } label: {
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(value <= intensity ? Color.apayoBrightGreen : Color.apayoGray100)
+                            .fill(value <= (intensity ?? 0) ? Color.apayoBrightGreen : Color.apayoGray100)
                             .frame(height: 85)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("통증 강도 \(value)점")
+                    .accessibilityLabel(
+                        String(
+                            format: languageStore.language.localized("accessibility.pain_value"),
+                            value
+                        )
+                    )
                     .accessibilityAddTraits(value == intensity ? .isSelected : [])
                 }
             }
             .padding(.top, 134)
 
             HStack {
-                Text("통증 없음")
+                Text(languageStore.language.localized("pain.none"))
                 Spacer()
-                Text("보통 통증")
+                Text(languageStore.language.localized("pain.moderate"))
                 Spacer()
-                Text("극심한 통증")
+                Text(languageStore.language.localized("pain.severe"))
             }
             .font(.subheadline)
             .foregroundStyle(Color.apayoGray600)
             .padding(.top, 10)
 
             Spacer()
-            APAYOButton(title: "다음", action: onNext)
+            APAYOButton(title: LocalizedStringKey(languageStore.language.localized("common.next")), isDisabled: intensity == nil, action: onNext)
         }
         .padding(.horizontal, APAYOTheme.horizontalPadding)
         .background(Color(.systemBackground).ignoresSafeArea())
@@ -139,30 +184,38 @@ struct PainIntensityView: View {
 }
 
 struct MultiChoiceInterviewView: View {
+    @EnvironmentObject private var languageStore: AppLanguageStore
     let title: String
     let subtitle: String
     let options: [String]
+    @Binding var selections: Set<String>
+    var completedSteps: Int = 2
     let onNext: () -> Void
 
-    @State private var selections: Set<String> = []
+    @State private var isCustomInputPresented = false
+    @State private var customInput = ""
 
     private let columns = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
 
     var body: some View {
         VStack(spacing: 0) {
-            InterviewHeader(title: title, subtitle: subtitle)
-                .padding(.top, 88)
+            InterviewHeader(
+                title: title,
+                subtitle: subtitle,
+                completedSteps: completedSteps
+            )
+            .padding(.top, 10)
 
             LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(options, id: \.self) { option in
+                ForEach(displayedOptions, id: \.self) { option in
                     Button {
                         toggle(option)
                     } label: {
                         VStack(spacing: 4) {
-                            if option == "증상 없음" {
+                            if option == "choice.none" {
                                 Image(systemName: "x.circle.fill")
                             }
-                            Text(option)
+                            Text(display(option))
                                 .multilineTextAlignment(.center)
                         }
                         .font(.body.weight(.semibold))
@@ -180,9 +233,10 @@ struct MultiChoiceInterviewView: View {
                 }
 
                 Button {
-                    // Figma에는 직접 입력의 다음 화면이 아직 없습니다.
+                    customInput = ""
+                    isCustomInputPresented = true
                 } label: {
-                    Label("직접입력", systemImage: "plus")
+                    Label(languageStore.language.localized("common.custom"), systemImage: "plus")
                         .font(.callout.weight(.semibold))
                         .foregroundStyle(Color.apayoGreen)
                         .frame(maxWidth: .infinity, minHeight: 98)
@@ -191,18 +245,43 @@ struct MultiChoiceInterviewView: View {
             .padding(.top, 26)
 
             Spacer()
-            APAYOButton(title: "다음", isDisabled: selections.isEmpty, action: onNext)
+            APAYOButton(title: LocalizedStringKey(languageStore.language.localized("common.next")), isDisabled: selections.isEmpty, action: onNext)
         }
         .padding(.horizontal, APAYOTheme.horizontalPadding)
         .background(Color(.systemBackground).ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $isCustomInputPresented) {
+            APAYOCustomInputSheet(
+                placeholder: languageStore.language.localized(
+                    completedSteps == 3 ? "custom.medication_placeholder" : "custom.symptom_placeholder"
+                ),
+                text: $customInput
+            ) {
+                let value = customInput.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !value.isEmpty {
+                    selections.remove("choice.none")
+                    selections.insert(value)
+                }
+                isCustomInputPresented = false
+            }
+            .presentationDetents([.height(280)])
+            .presentationDragIndicator(.visible)
+            .presentationCornerRadius(34)
+        }
+    }
+
+    private var displayedOptions: [String] {
+        let customOptions = selections
+            .filter { !options.contains($0) }
+            .sorted()
+        return options + customOptions
     }
 
     private func toggle(_ option: String) {
-        if option == "증상 없음" {
+        if option == "choice.none" {
             selections = selections == [option] ? [] : [option]
         } else {
-            selections.remove("증상 없음")
+            selections.remove("choice.none")
             if selections.contains(option) {
                 selections.remove(option)
             } else {
@@ -210,30 +289,93 @@ struct MultiChoiceInterviewView: View {
             }
         }
     }
+
+    private func display(_ value: String) -> String {
+        options.contains(value) ? languageStore.language.localized(value) : value
+    }
 }
 
-struct WorkEnvironmentInterviewView: View {
+struct InterviewProgressLine: View {
+    @EnvironmentObject private var languageStore: AppLanguageStore
+    let completedSteps: Int
+    private let totalSteps = 5
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            InterviewHeader(
-                title: "오늘 어떤 환경에서 일하셨나요?",
-                subtitle: "일하셨던 환경과 노출 상황을 모두 체크해 주세요"
-            )
-            .padding(.top, 88)
+        HStack(spacing: 0) {
+            ForEach(1...totalSteps, id: \.self) { step in
+                progressNode(step)
 
-            Text("기상 및 온열환경")
-                .font(.body.weight(.semibold))
-                .padding(.top, 56)
-
-            Text("오늘 야외 또는 비닐하우스 내 작업 시간이 4시간 이상인가요?")
-                .font(.body.weight(.semibold))
-                .padding(.top, 16)
-
-            Spacer()
+                if step < totalSteps {
+                    Rectangle()
+                        .fill(step <= completedSteps ? Color.apayoGreen : Color.apayoGray300)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 4)
+                }
+            }
         }
-        .padding(.horizontal, APAYOTheme.horizontalPadding)
-        .background(Color(.systemBackground).ignoresSafeArea())
-        .toolbar(.hidden, for: .navigationBar)
+        .frame(height: 20)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(languageStore.language.localized("accessibility.interview_progress"))
+        .accessibilityValue(
+            String(
+                format: languageStore.language.localized("accessibility.interview_value"),
+                completedSteps
+            )
+        )
+    }
+
+    @ViewBuilder
+    private func progressNode(_ step: Int) -> some View {
+        if step <= completedSteps {
+            Image(systemName: "checkmark")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 18, height: 18)
+                .background(Color.apayoBrightGreen, in: Circle())
+                .overlay { Circle().stroke(Color.apayoGreen, lineWidth: 2) }
+        } else {
+            Text("\(step)")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(Color.apayoGray300)
+                .frame(width: 19, height: 19)
+                .background(.white, in: Circle())
+                .overlay { Circle().stroke(Color.apayoGray300, lineWidth: 2) }
+        }
+    }
+}
+
+struct APAYOCustomInputSheet: View {
+    @EnvironmentObject private var languageStore: AppLanguageStore
+    let placeholder: String
+    @Binding var text: String
+    var title: String?
+    var actionTitle: String?
+    let onComplete: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Text(title ?? languageStore.language.localized("custom.title"))
+                .font(.headline)
+                .padding(.top, 22)
+
+            TextField(placeholder, text: $text)
+                .font(.body)
+                .padding(.horizontal, 20)
+                .frame(height: 50)
+                .background(Color.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .padding(.top, 38)
+
+            Spacer(minLength: 18)
+
+            APAYOButton(
+                title: LocalizedStringKey(actionTitle ?? languageStore.language.localized("custom.complete")),
+                isDisabled: text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                action: onComplete
+            )
+        }
+        .padding(.horizontal, 28)
+        .padding(.bottom, 26)
+        .background(Color.apayoGray100.opacity(0.94).ignoresSafeArea())
     }
 }
 
@@ -246,6 +388,7 @@ struct WorkEnvironmentInterviewView: View {
             subtitle: "통증이 시작된 대략적인 시점을 알려주세요.",
             step: (1, 2),
             options: PreviewMockData.durationOptions,
+            selection: .constant(nil),
             onNext: { path.append(.frequencyInterview) }
         )
         .navigationDestination(for: PatientFlowRoute.self) { destination in
@@ -256,26 +399,29 @@ struct WorkEnvironmentInterviewView: View {
                     subtitle: "일상생활이나 활동 중 증상을 선택해 주세요.",
                     step: (2, 2),
                     options: PreviewMockData.frequencyOptions,
+                    selection: .constant(nil),
                     onNext: { path.append(.intensityInterview) }
                 )
             case .intensityInterview:
-                PainIntensityView {
+                PainIntensityView(intensity: .constant(nil)) {
                     path.append(.accompanyingSymptoms)
                 }
             case .accompanyingSymptoms:
                 MultiChoiceInterviewView(
                     title: "통증 외에 같이 나타나는\n증상이 있나요?",
                     subtitle: "현재 겪고 계신 모든 동반 증상을 체크해 주세요.",
-                    options: PreviewMockData.accompanyingOptions
+                    options: PreviewMockData.accompanyingOptions,
+                    selections: .constant([])
                 ) { path.append(.medicationInterview) }
             case .medicationInterview:
                 MultiChoiceInterviewView(
                     title: "증상이 나타난 후\n응급 복용한 약이 있나요?",
                     subtitle: "증상 발생 후 드신 약을 모두 선택해 주세요",
-                    options: PreviewMockData.medicationOptions
-                ) { path.append(.workContextInterview) }
-            case .workContextInterview:
-                WorkEnvironmentInterviewView()
+                    options: PreviewMockData.medicationOptions,
+                    selections: .constant([])
+                ) { path.append(.aiFollowUp) }
+            case .aiFollowUp:
+                AIFollowUpView(selections: .constant([]), onNext: {})
             default:
                 EmptyView()
             }

@@ -1,43 +1,35 @@
 import SwiftUI
 
-struct LanguageOption: Identifiable, Hashable {
-    let id: String
-    let nativeName: String
-    let englishName: String
-    let imageName: String
-}
-
 struct LanguageSelectionView: View {
+    @EnvironmentObject private var languageStore: AppLanguageStore
+    @State private var selection: AppLanguage?
     let onNext: () -> Void
-    @State private var selection: LanguageOption?
-
-    private let languages = [
-        LanguageOption(id: "en", nativeName: "English", englishName: "English", imageName: "FlagEnglish"),
-        LanguageOption(id: "fil", nativeName: "Wikang Filipino", englishName: "Filipino", imageName: "FlagFilipino"),
-        LanguageOption(id: "vi", nativeName: "Tiếng Việt", englishName: "Vietnamese", imageName: "FlagVietnamese"),
-        LanguageOption(id: "zh", nativeName: "中國語", englishName: "Chinese", imageName: "FlagChinese"),
-        LanguageOption(id: "ru", nativeName: "ру́сский язы́к", englishName: "Russian", imageName: "FlagRussian"),
-        LanguageOption(id: "km", nativeName: "ភាសាខ្មែរ", englishName: "Cambodian", imageName: "FlagCambodian")
-    ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            APAYOProgressBar(currentStep: 1, totalSteps: 2)
-                .padding(.top, 42)
+            OnboardingProgressLine(completedSteps: selection == nil ? 0 : 1)
+                .padding(.top, 10)
+
+            Text("1/2")
+                .font(.headline)
+                .foregroundStyle(Color.apayoGreen)
+                .padding(.top, 18)
 
             VStack(alignment: .leading, spacing: 10) {
-                Text("Which language are you\ncomfortable with?")
+                Text((selection ?? .english).localized("language.title"))
                     .font(.title2.bold())
-                Text("Please select your preferred language.")
+                    .fixedSize(horizontal: false, vertical: true)
+                Text((selection ?? .english).localized("language.subtitle"))
                     .font(.body)
                     .foregroundStyle(Color.apayoGray800)
             }
             .padding(.top, 20)
 
             VStack(spacing: 8) {
-                ForEach(languages) { language in
+                ForEach(AppLanguage.onboardingLanguages) { language in
                     Button {
                         selection = language
+                        languageStore.select(language)
                     } label: {
                         HStack(spacing: 16) {
                             Image(language.imageName)
@@ -71,7 +63,11 @@ struct LanguageSelectionView: View {
 
             Spacer(minLength: 12)
 
-            APAYOButton(title: "다음", isDisabled: selection == nil, action: onNext)
+            APAYOButton(
+                title: LocalizedStringKey((selection ?? .english).localized("common.next")),
+                isDisabled: selection == nil,
+                action: onNext
+            )
         }
         .padding(.horizontal, APAYOTheme.horizontalPadding)
         .padding(.bottom, 1)
@@ -81,4 +77,5 @@ struct LanguageSelectionView: View {
 
 #Preview {
     LanguageSelectionView(onNext: {})
+        .environmentObject(AppLanguageStore())
 }
