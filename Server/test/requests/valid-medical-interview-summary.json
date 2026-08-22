@@ -1,0 +1,65 @@
+{
+  "schema_version": "2.0",
+  "context": {
+    "original_symptom": {
+      "text": "Masakit ang ulo ko at nahihilo ako mula kaninang umaga.",
+      "language_hint": "fil"
+    },
+    "medical_history": {
+      "chronic_conditions": ["Walang malalang kondisyon"],
+      "allergies": ["Walang allergy"],
+      "family_history": ["Walang kasaysayan ng sakit sa pamilya"],
+      "substance_use": "Hindi umiinom o naninigarilyo",
+      "surgery_history": "Walang operasyon"
+    },
+    "base_interview": {
+      "duration": "Nagsimula ngayong umaga",
+      "frequency": "Patuloy",
+      "pain_intensity": 6,
+      "accompanying_symptoms": ["Pagkahilo", "Pagduduwal"],
+      "medications": [],
+      "work_environment": ["Nagtrabaho sa greenhouse ngayong araw"]
+    },
+    "weather_context": {
+      "observed_at": "2026-08-23T14:00:00+09:00",
+      "temperature_celsius": 34.2,
+      "humidity_percent": 71,
+      "heat_warning": true
+    }
+  },
+  "question_groups": [
+    {
+      "title_user": "Suriin ang kapaligiran sa trabaho",
+      "title_ko": "작업 환경 추가 확인",
+      "questions": [
+        {
+          "id": "fq_1",
+          "prompt_user": "Hindi ako nakainom ng sapat na tubig habang nagtatrabaho.",
+          "prompt_ko": "작업 중 수분을 충분히 섭취하지 못했습니다.",
+          "category": "work_environment",
+          "answer_type": "checkbox_yes"
+        },
+        {
+          "id": "fq_2",
+          "prompt_user": "Nagpatuloy ang mga sintomas kahit nagpahinga na ako.",
+          "prompt_ko": "휴식 후에도 증상이 계속되었습니다.",
+          "category": "symptom_change",
+          "answer_type": "checkbox_yes"
+        }
+      ]
+    }
+  ],
+  "selected_follow_up_question_ids": ["fq_1", "fq_2"],
+  "allowed_card_ids": [
+    "card_default",
+    "card_chest_tightness",
+    "card_chills",
+    "card_cough",
+    "card_dizziness",
+    "card_headache",
+    "card_hives",
+    "card_stomachache",
+    "card_toothache",
+    "card_vomiting"
+  ]
+}

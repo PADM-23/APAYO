@@ -2,16 +2,9 @@ import SwiftUI
 
 struct AIFollowUpView: View {
     @EnvironmentObject private var languageStore: AppLanguageStore
-    @Binding var selections: Set<String>
+    let viewModel: MedicalInterviewAIViewModel
+    let context: MedicalInterviewContext
     let onNext: () -> Void
-
-    private let heatQuestions = [
-        "followup.long_work", "followup.hottest", "followup.rest_water"
-    ]
-
-    private let externalQuestions = [
-        "followup.enclosed"
-    ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -32,43 +25,89 @@ struct AIFollowUpView: View {
                 .foregroundStyle(Color.apayoGray800)
                 .padding(.top, 10)
 
-            questionSection(title: text("followup.heat"), questions: heatQuestions)
+            followUpContent
                 .padding(.top, 62)
-
-            questionSection(title: text("followup.external"), questions: externalQuestions)
-                .padding(.top, 54)
 
             Spacer(minLength: 24)
 
-            APAYOButton(title: LocalizedStringKey(text("common.next")), action: onNext)
+            if case .success = viewModel.followUpState {
+                if case .failure(let message) = viewModel.summaryState {
+                    Text(message)
+                        .font(.footnote)
+                        .foregroundStyle(Color.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.bottom, 8)
+                }
+
+                APAYOButton(
+                    title: LocalizedStringKey(text("common.next")),
+                    isLoading: viewModel.summaryState.isLoading,
+                    action: submitSummary
+                )
+            }
         }
         .padding(.horizontal, APAYOTheme.horizontalPadding)
         .padding(.bottom, 1)
         .background(Color(.systemBackground).ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
+        .task {
+            guard case .idle = viewModel.followUpState else { return }
+            await viewModel.generateFollowUpQuestions(context: context)
+        }
     }
 
-    private func questionSection(title: String, questions: [String]) -> some View {
+    @ViewBuilder
+    private var followUpContent: some View {
+        switch viewModel.followUpState {
+        case .idle, .loading:
+            ProgressView()
+                .frame(maxWidth: .infinity)
+        case .failure(let message):
+            VStack(spacing: 16) {
+                Text(message)
+                    .font(.callout)
+                    .foregroundStyle(Color.secondary)
+                    .multilineTextAlignment(.center)
+
+                Button(text("confirmation.retry")) {
+                    Task {
+                        await viewModel.generateFollowUpQuestions(context: context)
+                    }
+                }
+                .font(.headline)
+                .foregroundStyle(Color.apayoGreen)
+            }
+            .frame(maxWidth: .infinity)
+        case .success(let response):
+            VStack(alignment: .leading, spacing: 54) {
+                ForEach(Array(response.questionGroups.enumerated()), id: \.offset) { _, group in
+                    questionSection(group)
+                }
+            }
+        }
+    }
+
+    private func questionSection(_ group: GeneratedQuestionGroup) -> some View {
         VStack(alignment: .leading, spacing: 19) {
-            Text(title)
+            Text(group.titleUser)
                 .font(.headline)
 
-            ForEach(questions, id: \.self) { question in
+            ForEach(group.questions) { question in
                 Button {
-                    toggle(question)
+                    viewModel.toggleSelection(for: question.id)
                 } label: {
                     HStack(spacing: 12) {
                         ZStack {
                             RoundedRectangle(cornerRadius: 6)
-                                .fill(selections.contains(question) ? Color.apayoBrightGreen : Color.apayoGray100)
+                                .fill(isSelected(question) ? Color.apayoBrightGreen : Color.apayoGray100)
                                 .overlay {
-                                    if !selections.contains(question) {
+                                    if !isSelected(question) {
                                         RoundedRectangle(cornerRadius: 6)
                                             .stroke(Color.apayoGray400)
                                     }
                                 }
 
-                            if selections.contains(question) {
+                            if isSelected(question) {
                                 Image(systemName: "checkmark")
                                     .font(.system(size: 16, weight: .bold))
                                     .foregroundStyle(.white)
@@ -76,7 +115,7 @@ struct AIFollowUpView: View {
                         }
                         .frame(width: 27, height: 27)
 
-                        Text(text(question))
+                        Text(question.promptUser)
                             .font(.callout)
                             .foregroundStyle(Color.primary)
                             .multilineTextAlignment(.leading)
@@ -84,27 +123,24 @@ struct AIFollowUpView: View {
                     }
                 }
                 .buttonStyle(.plain)
-                .accessibilityAddTraits(selections.contains(question) ? .isSelected : [])
+                .accessibilityAddTraits(isSelected(question) ? .isSelected : [])
             }
         }
     }
 
-    private func toggle(_ question: String) {
-        if selections.contains(question) {
-            selections.remove(question)
-        } else {
-            selections.insert(question)
+    private func isSelected(_ question: GeneratedFollowUpQuestion) -> Bool {
+        viewModel.selectedQuestionIDs.contains(question.id)
+    }
+
+    private func submitSummary() {
+        Task {
+            await viewModel.generateMedicalSummary(context: context)
+            guard case .success = viewModel.summaryState else { return }
+            onNext()
         }
     }
 
     private func text(_ key: String) -> String {
         languageStore.language.localized(key)
     }
-}
-
-#Preview {
-    AIFollowUpView(selections: .constant([
-        "오늘 야외 또는 비닐하우스 내 작업 시간이 4시간 이상인가요?",
-        "밀폐되고 환기가 되지 않는 공간(ex 비닐하우스 내부, 창고)에서 작업하셨나요?"
-    ]), onNext: {})
 }

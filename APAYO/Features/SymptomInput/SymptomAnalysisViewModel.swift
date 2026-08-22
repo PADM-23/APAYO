@@ -25,13 +25,13 @@ final class SymptomAnalysisViewModel {
     private let validator: SymptomAnalysisValidator
 
     init(
-        service: any SymptomAnalyzing = SymptomAnalysisService(),
-        catalogLoader: InterviewCatalogLoader = InterviewCatalogLoader(),
-        validator: SymptomAnalysisValidator = SymptomAnalysisValidator()
+        service: (any SymptomAnalyzing)? = nil,
+        catalogLoader: InterviewCatalogLoader? = nil,
+        validator: SymptomAnalysisValidator? = nil
     ) {
-        self.service = service
-        self.catalogLoader = catalogLoader
-        self.validator = validator
+        self.service = service ?? SymptomAnalysisService()
+        self.catalogLoader = catalogLoader ?? InterviewCatalogLoader()
+        self.validator = validator ?? SymptomAnalysisValidator()
     }
 
     func analyze(
