@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct APAYOButton: View {
+    @EnvironmentObject private var languageStore: AppLanguageStore
     enum Style {
         case primary
         case secondary
@@ -39,7 +40,9 @@ struct APAYOButton: View {
         }
         .buttonStyle(.plain)
         .disabled(isDisabled || isLoading)
-        .accessibilityValue(isLoading ? "로딩 중" : "")
+        .accessibilityValue(
+            isLoading ? languageStore.language.localized("accessibility.loading") : ""
+        )
     }
 
     private var foregroundColor: Color {
@@ -58,4 +61,5 @@ struct APAYOButton: View {
         APAYOButton(title: "다음", isDisabled: true) {}
     }
     .padding()
+    .environmentObject(AppLanguageStore())
 }

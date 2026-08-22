@@ -1,16 +1,28 @@
 import Foundation
 
 enum PatientFlowRoute: Hashable {
+    case chronicConditions
+    case allergies
+    case familyHistory
+    case substanceUse
+    case surgeryHistory
     case symptomInput
+    case symptomAnalysis
     case symptomConfirmation
+    case interviewStart
     case durationInterview
     case frequencyInterview
     case intensityInterview
     case accompanyingSymptoms
     case medicationInterview
-    case workContextInterview
+    case aiFollowUp
     case medicalSummary
     case facilitySearch
+}
+
+struct WorkEnvironmentResponse: Equatable {
+    var selectedConditions: Set<String> = []
+    var weatherSummary: String?
 }
 
 struct InterviewQuestion: Identifiable, Hashable {

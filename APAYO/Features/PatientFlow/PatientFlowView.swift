@@ -1,79 +1,198 @@
 import SwiftUI
 
 struct PatientFlowView: View {
+    @EnvironmentObject private var languageStore: AppLanguageStore
     @State private var path: [PatientFlowRoute] = []
+    @StateObject private var viewModel = PatientFlowViewModel()
 
     var body: some View {
         NavigationStack(path: $path) {
             LanguageSelectionView {
-                path.append(.symptomInput)
+                path.append(.chronicConditions)
             }
             .navigationDestination(for: PatientFlowRoute.self) { route in
                 destination(for: route)
             }
         }
         .tint(.apayoGreen)
+        .alert(
+            fallbackTitle,
+            isPresented: Binding(
+                get: { languageStore.fallbackReason != nil },
+                set: { if !$0 { languageStore.clearFallbackReason() } }
+            )
+        ) {
+            Button(text("common.dismiss")) {
+                languageStore.clearFallbackReason()
+            }
+        } message: {
+            Text(fallbackMessage)
+        }
     }
 
     @ViewBuilder
     private func destination(for route: PatientFlowRoute) -> some View {
         switch route {
+        case .chronicConditions:
+            MedicalHistoryOnboardingView(
+                title: text("onboarding.chronic.title"),
+                subtitle: text("onboarding.chronic.subtitle"),
+                completedSteps: 1,
+                options: [
+                    "condition.hypertension", "condition.diabetes", "condition.heart", "condition.cerebrovascular",
+                    "condition.respiratory", "condition.cancer_immune", "condition.liver_kidney", "choice.none"
+                ],
+                cardHeight: 98,
+                noSelectionOption: "choice.none",
+                selections: $viewModel.chronicConditions
+            ) { path.append(.allergies) }
+        case .allergies:
+            MedicalHistoryOnboardingView(
+                title: text("onboarding.allergy.title"),
+                subtitle: text("onboarding.allergy.subtitle"),
+                completedSteps: 2,
+                options: ["allergy.nuts", "allergy.fish", "allergy.shellfish", "allergy.grain", "allergy.milk", "allergy.pollen", "allergy.fruit", "allergy.latex", "choice.none"],
+                cardHeight: 76,
+                noSelectionOption: "choice.none",
+                selections: $viewModel.allergies
+            ) { path.append(.familyHistory) }
+        case .familyHistory:
+            MedicalHistoryOnboardingView(
+                title: text("onboarding.family.title"),
+                subtitle: text("onboarding.family.subtitle"),
+                completedSteps: 3,
+                options: [
+                    "family.hypertension", "family.diabetes", "family.hyperlipidemia", "family.obesity", "family.heart", "family.stroke",
+                    "family.stomach_cancer", "family.colon_cancer", "family.breast_cancer", "family.lung_cancer", "family.osteoporosis", "family.dementia", "choice.none"
+                ],
+                cardHeight: 68,
+                noSelectionOption: "choice.none",
+                selections: $viewModel.familyHistory
+            ) { path.append(.substanceUse) }
+        case .substanceUse:
+            SingleChoiceOnboardingView(
+                title: text("onboarding.substance.title"),
+                subtitle: text("onboarding.substance.subtitle"),
+                completedSteps: 4,
+                options: ["substance.both", "substance.alcohol", "substance.smoking", "substance.neither"],
+                selection: $viewModel.substanceUse
+            ) { path.append(.surgeryHistory) }
+        case .surgeryHistory:
+            SingleChoiceOnboardingView(
+                title: text("onboarding.surgery.title"),
+                subtitle: text("onboarding.surgery.subtitle"),
+                completedSteps: 5,
+                options: ["binary.yes", "binary.no"],
+                selection: $viewModel.surgeryHistory
+            ) { path.append(.symptomInput) }
         case .symptomInput:
-            SymptomInputView { path.append(.symptomConfirmation) }
+            SymptomInputView(
+                symptom: $viewModel.originalSymptom
+            ) {
+                path.append(.symptomAnalysis)
+            }
+        case .symptomAnalysis:
+            SymptomAnalysisLoadingView {
+                path.removeLast()
+            } onComplete: {
+                viewModel.translatedSymptom = "confirmation.heatstroke"
+                viewModel.extractedSymptoms = ["confirmation.heatstroke"]
+                path.append(.symptomConfirmation)
+            }
         case .symptomConfirmation:
-            SymptomConfirmationView { path.append(.durationInterview) }
+            SymptomConfirmationView {
+                path.append(.interviewStart)
+            } onRetry: {
+                path.removeLast(2)
+            }
+        case .interviewStart:
+            InterviewStartView {
+                path.append(.durationInterview)
+            }
         case .durationInterview:
             SingleChoiceInterviewView(
-                title: "언제부터 불편하셨나요?",
-                subtitle: "통증이 시작된 대략적인 시점을 알려주세요.",
+                title: text("interview.duration.title"),
+                subtitle: text("interview.duration.subtitle"),
                 step: (1, 2),
-                options: PreviewMockData.durationOptions
+                options: PreviewMockData.durationOptions,
+                selection: $viewModel.duration
             ) { path.append(.frequencyInterview) }
         case .frequencyInterview:
             SingleChoiceInterviewView(
-                title: "통증이 얼마나 자주,\n어떻게 나타나나요?",
-                subtitle: "일상생활이나 활동 중 증상을 선택해 주세요.",
+                title: text("interview.frequency.title"),
+                subtitle: text("interview.frequency.subtitle"),
                 step: (2, 2),
-                options: PreviewMockData.frequencyOptions
+                options: PreviewMockData.frequencyOptions,
+                selection: $viewModel.frequency
             ) { path.append(.intensityInterview) }
         case .intensityInterview:
-            PainIntensityView {
+            PainIntensityView(intensity: $viewModel.painIntensity) {
                 path.append(.accompanyingSymptoms)
             }
         case .accompanyingSymptoms:
             MultiChoiceInterviewView(
-                title: "통증 외에 같이 나타나는\n증상이 있나요?",
-                subtitle: "현재 겪고 계신 모든 동반 증상을 체크해 주세요.",
-                options: PreviewMockData.accompanyingOptions
+                title: text("interview.accompanying.title"),
+                subtitle: text("interview.accompanying.subtitle"),
+                options: PreviewMockData.accompanyingOptions,
+                selections: $viewModel.accompanyingSymptoms,
+                completedSteps: 2
             ) { path.append(.medicationInterview) }
         case .medicationInterview:
             MultiChoiceInterviewView(
-                title: "증상이 나타난 후\n응급 복용한 약이 있나요?",
-                subtitle: "증상 발생 후 드신 약을 모두 선택해 주세요",
-                options: PreviewMockData.medicationOptions
+                title: text("interview.medication.title"),
+                subtitle: text("interview.medication.subtitle"),
+                options: PreviewMockData.medicationOptions,
+                selections: $viewModel.medications,
+                completedSteps: 3
             ) {
-                path.append(.workContextInterview)
+                path.append(.aiFollowUp)
             }
-        case .workContextInterview:
-            WorkEnvironmentInterviewView()
+        case .aiFollowUp:
+            AIFollowUpView(selections: $viewModel.workEnvironment.selectedConditions) {
+                path.append(.medicalSummary)
+            }
         case .medicalSummary:
-            MedicalSummaryView {
+            MedicalSummaryView(viewModel: viewModel) {
                 path.append(.facilitySearch)
             }
         case .facilitySearch:
             APAYOStateView(
                 kind: .empty,
-                title: "주변 병원을 찾고 있어요",
-                message: "병원 검색 기능은 다음 단계에서 연결됩니다.",
-                actionTitle: "처음으로"
+                title: LocalizedStringKey(text("summary.empty_title")),
+                message: LocalizedStringKey(text("summary.empty_message")),
+                actionTitle: LocalizedStringKey(text("summary.restart"))
             ) {
+                viewModel.reset()
                 path.removeAll()
             }
-            .navigationTitle("병원 찾기")
+            .navigationTitle(text("summary.facility_navigation"))
+        }
+    }
+
+    private func text(_ key: String) -> String {
+        languageStore.language.localized(key)
+    }
+
+    private var fallbackTitle: String {
+        switch languageStore.fallbackReason {
+        case .unsupportedLanguage:
+            text("error.unsupported.title")
+        case nil:
+            ""
+        }
+    }
+
+    private var fallbackMessage: String {
+        switch languageStore.fallbackReason {
+        case .unsupportedLanguage:
+            text("error.unsupported.message")
+        case nil:
+            ""
         }
     }
 }
 
 #Preview {
     PatientFlowView()
+        .environmentObject(AppLanguageStore())
 }

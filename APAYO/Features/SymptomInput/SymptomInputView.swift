@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct SymptomInputView: View {
-    @State private var symptom = ""
+    @EnvironmentObject private var languageStore: AppLanguageStore
+    @Binding var symptom: String
     let onNext: () -> Void
 
     var body: some View {
@@ -9,17 +10,24 @@ struct SymptomInputView: View {
             Spacer().frame(height: 72)
 
             Menu {
-                Button("Tiếng Việt") {}
-                Button("한국어") {}
+                ForEach(AppLanguage.allCases) { language in
+                    Button {
+                        languageStore.select(language)
+                    } label: {
+                        Label(language.nativeName, image: language.imageName)
+                    }
+                }
             } label: {
                 HStack(spacing: 10) {
-                    Image("FlagVietnamese")
+                    Image(languageStore.language.imageName)
                         .resizable()
+                        .scaledToFill()
                         .frame(width: 28, height: 28)
                         .clipShape(Circle())
-                    Text("Tiếng Việt")
+                    Text(languageStore.language.nativeName)
                         .font(.callout.weight(.semibold))
                     Image(systemName: "chevron.down")
+                        .font(.caption.weight(.semibold))
                 }
                 .foregroundStyle(Color.apayoGray700)
                 .padding(.horizontal, 8)
@@ -28,27 +36,32 @@ struct SymptomInputView: View {
                 .overlay { Capsule().stroke(Color.apayoGray300, lineWidth: 2) }
             }
 
-            Text("어디가 불편해서\n찾아오셨나요?")
-                .font(.title.bold())
+            Text(languageStore.language.localized("symptom.title"))
+                .font(.system(size: 28, weight: .bold))
                 .multilineTextAlignment(.center)
+                .frame(maxWidth: 346)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 54)
 
             Spacer().frame(height: 58)
 
-            HStack(spacing: 8) {
-                ForEach(["배아파", "머리아파", "어지러워", "기침해"], id: \.self) { item in
-                    Text(item)
-                        .font(.subheadline)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 8)
-                        .background(.white.opacity(0.7), in: Capsule())
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(Array(suggestionItems.enumerated()), id: \.offset) { _, item in
+                        Text(item)
+                            .font(.subheadline)
+                            .fixedSize(horizontal: true, vertical: false)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 8)
+                            .background(.white.opacity(0.7), in: Capsule())
+                    }
                 }
+                .padding(.horizontal, APAYOTheme.horizontalPadding)
             }
             .frame(maxWidth: .infinity)
-            .clipped()
 
             HStack(spacing: 8) {
-                TextField("증상을 입력해주세요", text: $symptom)
+                TextField(languageStore.language.localized("symptom.placeholder"), text: $symptom)
                     .font(.body)
                     .padding(.horizontal, 20)
                     .frame(height: 50)
@@ -69,20 +82,35 @@ struct SymptomInputView: View {
             Spacer()
         }
         .background {
-            RadialGradient(
-                colors: [.apayoBrightGreen.opacity(0.65), .apayoYellow.opacity(0.45), .clear],
-                center: .center,
-                startRadius: 20,
-                endRadius: 280
-            )
+            ZStack {
+                Color(.systemBackground)
+                RadialGradient(
+                    colors: [
+                        Color.apayoBrightGreen.opacity(0.62),
+                        Color.apayoYellow.opacity(0.42),
+                        Color.clear
+                    ],
+                    center: UnitPoint(x: 0.5, y: 0.43),
+                    startRadius: 18,
+                    endRadius: 230
+                )
+            }
             .ignoresSafeArea()
         }
         .toolbar(.hidden, for: .navigationBar)
+    }
+
+    private var suggestionItems: [String] {
+        Array(repeating: languageStore.language.localized("symptom.suggestion"), count: 3)
     }
 }
 
 #Preview {
     NavigationStack {
-        SymptomInputView(onNext: {})
+        SymptomInputView(
+            symptom: .constant(""),
+            onNext: {}
+        )
+        .environmentObject(AppLanguageStore())
     }
 }
