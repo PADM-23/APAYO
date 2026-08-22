@@ -156,16 +156,7 @@ struct PatientFlowView: View {
                 path.append(.facilitySearch)
             }
         case .facilitySearch:
-            APAYOStateView(
-                kind: .empty,
-                title: LocalizedStringKey(text("summary.empty_title")),
-                message: LocalizedStringKey(text("summary.empty_message")),
-                actionTitle: LocalizedStringKey(text("summary.restart"))
-            ) {
-                viewModel.reset()
-                path.removeAll()
-            }
-            .navigationTitle(text("summary.facility_navigation"))
+            FacilitySearchView()
         }
     }
 

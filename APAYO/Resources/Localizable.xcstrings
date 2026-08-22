@@ -7125,6 +7125,215 @@
         }
       }
     },
+    "common.confirm": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Confirm" } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Kumpirmahin" } },
+        "km": { "stringUnit": { "state": "translated", "value": "បញ្ជាក់" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "확인" } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Подтвердить" } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Xác nhận" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "确定" } }
+      }
+    },
+    "facility.category.hospital": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Hospital" } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Ospital" } },
+        "km": { "stringUnit": { "state": "translated", "value": "មន្ទីរពេទ្យ" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "병원" } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Больница" } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Bệnh viện" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "医院" } }
+      }
+    },
+    "facility.category.pharmacy": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Pharmacy" } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Botika" } },
+        "km": { "stringUnit": { "state": "translated", "value": "ឱសថស្ថាន" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "약국" } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Аптека" } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Nhà thuốc" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "药店" } }
+      }
+    },
+    "facility.current_location": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Move to my location" } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Pumunta sa aking lokasyon" } },
+        "km": { "stringUnit": { "state": "translated", "value": "ទៅទីតាំងរបស់ខ្ញុំ" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "현재 위치로 이동" } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Перейти к моему местоположению" } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Đi đến vị trí của tôi" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "移至我的位置" } }
+      }
+    },
+    "facility.departments": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Department" } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Departamento" } },
+        "km": { "stringUnit": { "state": "translated", "value": "ផ្នែកព្យាបាល" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "진료 과목" } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Отделение" } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Chuyên khoa" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "诊疗科目" } }
+      }
+    },
+    "facility.directions": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Directions" } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Direksyon" } },
+        "km": { "stringUnit": { "state": "translated", "value": "ទិសដៅ" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "가시는 길" } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Маршрут" } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Chỉ đường" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "路线" } }
+      }
+    },
+    "facility.loading": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Loading medical facilities" } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Naglo-load ng mga pasilidad medikal" } },
+        "km": { "stringUnit": { "state": "translated", "value": "កំពុងផ្ទុកមណ្ឌលសុខភាព" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "병원 정보를 불러오는 중이에요" } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Загрузка медицинских учреждений" } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Đang tải cơ sở y tế" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "正在加载医疗机构" } }
+      }
+    },
+    "facility.location.alert_title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Location unavailable" } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Hindi makuha ang lokasyon" } },
+        "km": { "stringUnit": { "state": "translated", "value": "មិនអាចរកទីតាំងបាន" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "위치를 확인할 수 없어요" } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Местоположение недоступно" } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Không thể xác định vị trí" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "无法获取位置" } }
+      }
+    },
+    "facility.location.failed": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "We couldn't get your location. Please try again shortly." } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Hindi makuha ang iyong lokasyon. Subukan muli maya-maya." } },
+        "km": { "stringUnit": { "state": "translated", "value": "មិនអាចទទួលទីតាំងរបស់អ្នកបានទេ។ សូមព្យាយាមម្ដងទៀត។" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "현재 위치를 가져오지 못했어요. 잠시 후 다시 시도해 주세요." } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Не удалось определить местоположение. Повторите попытку позже." } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Không thể lấy vị trí hiện tại. Vui lòng thử lại sau." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "无法获取当前位置，请稍后重试。" } }
+      }
+    },
+    "facility.location.permission_denied": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Allow location access to find medical facilities near you." } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Payagan ang lokasyon upang makahanap ng mga pasilidad medikal na malapit sa iyo." } },
+        "km": { "stringUnit": { "state": "translated", "value": "អនុញ្ញាតការចូលប្រើទីតាំង ដើម្បីស្វែងរកមណ្ឌលសុខភាពនៅក្បែរអ្នក។" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "위치 권한을 허용하면 현재 위치 주변의 병원을 찾을 수 있어요." } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Разрешите доступ к геопозиции, чтобы найти медицинские учреждения рядом." } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Cho phép truy cập vị trí để tìm cơ sở y tế gần bạn." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "允许访问位置，即可查找附近的医疗机构。" } }
+      }
+    },
+    "facility.location.unavailable": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Your current location is unavailable." } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Hindi makuha ang iyong kasalukuyang lokasyon." } },
+        "km": { "stringUnit": { "state": "translated", "value": "មិនអាចរកទីតាំងបច្ចុប្បន្នរបស់អ្នកបានទេ។" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "현재 위치를 확인할 수 없어요." } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Текущее местоположение недоступно." } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Không thể xác định vị trí hiện tại của bạn." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "无法获取您的当前位置。" } }
+      }
+    },
+    "facility.navigation_title": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Nearby Hospitals or Emergency Facilities" } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Mga Kalapit na Ospital o Emergency Facility" } },
+        "km": { "stringUnit": { "state": "translated", "value": "មន្ទីរពេទ្យ ឬមណ្ឌលសង្គ្រោះបន្ទាន់នៅក្បែរ" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "주변 병원 또는 응급기관" } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Больницы и экстренная помощь рядом" } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Bệnh viện hoặc cơ sở cấp cứu gần đây" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "附近医院或急救机构" } }
+      }
+    },
+    "facility.no_information": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "No information" } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Walang impormasyon" } },
+        "km": { "stringUnit": { "state": "translated", "value": "គ្មានព័ត៌មាន" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "정보 없음" } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Нет данных" } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Không có thông tin" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂无信息" } }
+      }
+    },
+    "facility.open_map": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Open in Maps" } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Buksan sa Maps" } },
+        "km": { "stringUnit": { "state": "translated", "value": "បើកក្នុងផែនទី" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "지도에서 열기" } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Открыть на карте" } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Mở trong Bản đồ" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "在地图中打开" } }
+      }
+    },
+    "facility.search_nearby": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Search Near Me Again" } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Maghanap Muli Malapit sa Akin" } },
+        "km": { "stringUnit": { "state": "translated", "value": "ស្វែងរកម្ដងទៀតនៅក្បែរខ្ញុំ" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "내 주변으로 다시 검색" } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Искать рядом снова" } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Tìm lại quanh tôi" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "重新搜索我附近" } }
+      }
+    },
+    "facility.type": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Facility Type" } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Uri ng Pasilidad" } },
+        "km": { "stringUnit": { "state": "translated", "value": "ប្រភេទមណ្ឌល" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "시설 유형" } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Тип учреждения" } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Loại cơ sở" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "机构类型" } }
+      }
+    },
+    "summary.save_failed": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "The image could not be saved. Please try again." } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Hindi ma-save ang larawan. Pakisubukang muli." } },
+        "km": { "stringUnit": { "state": "translated", "value": "មិនអាចរក្សាទុករូបភាពបានទេ។ សូមព្យាយាមម្ដងទៀត។" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "이미지를 저장하지 못했어요. 다시 시도해 주세요." } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Не удалось сохранить изображение. Повторите попытку." } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Không thể lưu hình ảnh. Vui lòng thử lại." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "无法保存图片，请重试。" } }
+      }
+    },
+    "summary.save_permission_denied": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Allow photo access in Settings to save the summary image." } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Payagan ang access sa Photos sa Settings upang ma-save ang larawan." } },
+        "km": { "stringUnit": { "state": "translated", "value": "អនុញ្ញាតការចូលប្រើរូបថតក្នុងការកំណត់ ដើម្បីរក្សាទុករូបភាពលទ្ធផល។" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "결과 이미지를 저장하려면 설정에서 사진 접근을 허용해 주세요." } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Разрешите доступ к фото в Настройках, чтобы сохранить изображение." } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Hãy cho phép truy cập Ảnh trong Cài đặt để lưu hình kết quả." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请在设置中允许访问照片，以保存结果图片。" } }
+      }
+    },
+    "summary.save_success": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "The medical summary was saved to Photos." } },
+        "fil": { "stringUnit": { "state": "translated", "value": "Na-save sa Photos ang resulta ng konsultasyon." } },
+        "km": { "stringUnit": { "state": "translated", "value": "លទ្ធផលពិគ្រោះត្រូវបានរក្សាទុកក្នុងរូបថត។" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "문진 결과를 사진 보관함에 저장했어요." } },
+        "ru": { "stringUnit": { "state": "translated", "value": "Результат опроса сохранён в Фото." } },
+        "vi": { "stringUnit": { "state": "translated", "value": "Kết quả tư vấn đã được lưu vào Ảnh." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "问诊结果已保存到照片。" } }
+      }
+    },
     "로딩 중": {},
     "문진 진행률": {},
     "온보딩 진행률": {},
@@ -7132,4 +7341,3 @@
   },
   "version": "1.1"
 }
-

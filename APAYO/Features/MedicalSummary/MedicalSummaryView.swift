@@ -1,89 +1,19 @@
+import Photos
 import SwiftUI
 import UIKit
 
 struct MedicalSummaryView: View {
+    @Environment(\.displayScale) private var displayScale
     @EnvironmentObject private var languageStore: AppLanguageStore
     @ObservedObject var viewModel: PatientFlowViewModel
     let onFindFacility: () -> Void
 
     @State private var showsKorean = false
-    @State private var showsShareSheet = false
+    @State private var saveAlertKey: String?
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 0) {
-                languagePicker
-                    .padding(.top, 24)
-
-                Image("SymptomCards/Heatstroke")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 226, height: 226)
-                    .clipShape(RoundedRectangle(cornerRadius: 24))
-                    .padding(.top, 26)
-
-                Text(summaryTitle)
-                    .font(.title.bold())
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 16)
-
-                Text(showsKorean ? localized("summary.doctor_korean") : selectedLanguageName)
-                    .font(.subheadline)
-                    .foregroundStyle(Color.apayoGreen)
-                    .padding(.top, 6)
-
-                Text(summaryDescription)
-                    .font(.callout)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 66)
-                    .padding(.top, 28)
-                    .padding(.bottom, 32)
-
-                Divider()
-
-                VStack(alignment: .leading, spacing: 32) {
-                    summarySection(title: localized("summary.duration_frequency")) {
-                        summaryRow(systemImage: "clock.fill", text: localizedAnswer(viewModel.duration))
-                        summaryRow(systemImage: "chart.bar.fill", text: localizedAnswer(viewModel.frequency))
-                    }
-
-                    summarySection(title: localized("summary.intensity")) {
-                        VStack(alignment: .leading, spacing: 14) {
-                            intensityBar
-                            Text(intensityDescription)
-                                .font(.title3.weight(.semibold))
-                                .foregroundStyle(Color.apayoGreen)
-                        }
-                    }
-
-                    summarySection(title: localized("summary.accompanying")) {
-                        centeredValues(localizedAnswers(viewModel.accompanyingSymptoms))
-                    }
-
-                    summarySection(title: localized("summary.medication")) {
-                        centeredValues(localizedAnswers(viewModel.medications))
-                    }
-
-                    summarySection(title: localized("summary.environment")) {
-                        VStack(alignment: .leading, spacing: 15) {
-                            ForEach(viewModel.workEnvironment.selectedConditions.sorted(), id: \.self) { condition in
-                                Text(localizedAnswer(condition))
-                                    .font(.callout)
-                            }
-
-                            if viewModel.workEnvironment.selectedConditions.isEmpty {
-                                Text(localized("summary.no_environment"))
-                                    .font(.callout)
-                            }
-                        }
-                    }
-
-                    basicInformationSection
-                }
-                .padding(.horizontal, APAYOTheme.horizontalPadding)
-                .padding(.top, 26)
-                .padding(.bottom, 28)
-            }
+            summaryContent
         }
         .background(Color(.systemBackground))
         .navigationTitle(localized("summary.navigation"))
@@ -91,7 +21,7 @@ struct MedicalSummaryView: View {
         .safeAreaInset(edge: .bottom) {
             HStack(spacing: 6) {
                 Button {
-                    showsShareSheet = true
+                    Task { await saveSummaryImage() }
                 } label: {
                     Image(systemName: "square.and.arrow.down.fill")
                         .font(.title2.bold())
@@ -110,9 +40,122 @@ struct MedicalSummaryView: View {
             .background(.white)
             .overlay(alignment: .top) { Divider() }
         }
-        .sheet(isPresented: $showsShareSheet) {
-            ActivityView(items: [shareSummaryText])
-                .presentationDetents([.medium, .large])
+        .alert(localized(saveAlertKey ?? "summary.save_failed"), isPresented: saveAlertPresented) {
+            Button(localized("common.confirm"), role: .cancel) {}
+        }
+    }
+
+    private var summaryContent: some View {
+        VStack(spacing: 0) {
+            languagePicker
+                .padding(.top, 24)
+
+            Image("SymptomCards/Heatstroke")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 226, height: 226)
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+                .padding(.top, 26)
+
+            Text(summaryTitle)
+                .font(.title.bold())
+                .multilineTextAlignment(.center)
+                .padding(.top, 16)
+
+            Text(showsKorean ? localized("summary.doctor_korean") : selectedLanguageName)
+                .font(.subheadline)
+                .foregroundStyle(Color.apayoGreen)
+                .padding(.top, 6)
+
+            Text(summaryDescription)
+                .font(.callout)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 66)
+                .padding(.top, 28)
+                .padding(.bottom, 32)
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 32) {
+                summarySection(title: localized("summary.duration_frequency")) {
+                    summaryRow(systemImage: "clock.fill", text: localizedAnswer(viewModel.duration))
+                    summaryRow(systemImage: "chart.bar.fill", text: localizedAnswer(viewModel.frequency))
+                }
+
+                summarySection(title: localized("summary.intensity")) {
+                    VStack(alignment: .leading, spacing: 14) {
+                        intensityBar
+                        Text(intensityDescription)
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(Color.apayoGreen)
+                    }
+                }
+
+                summarySection(title: localized("summary.accompanying")) {
+                    centeredValues(localizedAnswers(viewModel.accompanyingSymptoms))
+                }
+
+                summarySection(title: localized("summary.medication")) {
+                    centeredValues(localizedAnswers(viewModel.medications))
+                }
+
+                summarySection(title: localized("summary.environment")) {
+                    VStack(alignment: .leading, spacing: 15) {
+                        ForEach(viewModel.workEnvironment.selectedConditions.sorted(), id: \.self) { condition in
+                            Text(localizedAnswer(condition))
+                                .font(.callout)
+                        }
+
+                        if viewModel.workEnvironment.selectedConditions.isEmpty {
+                            Text(localized("summary.no_environment"))
+                                .font(.callout)
+                        }
+                    }
+                }
+
+                basicInformationSection
+            }
+            .padding(.horizontal, APAYOTheme.horizontalPadding)
+            .padding(.top, 26)
+            .padding(.bottom, 28)
+        }
+        .background(Color(.systemBackground))
+    }
+
+    private var saveAlertPresented: Binding<Bool> {
+        Binding(
+            get: { saveAlertKey != nil },
+            set: { if !$0 { saveAlertKey = nil } }
+        )
+    }
+
+    @MainActor
+    private func saveSummaryImage() async {
+        let authorization = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+        guard authorization == .authorized || authorization == .limited else {
+            saveAlertKey = "summary.save_permission_denied"
+            return
+        }
+
+        let renderer = ImageRenderer(
+            content: summaryContent
+                .frame(width: 402)
+                .environmentObject(languageStore)
+        )
+        renderer.scale = displayScale
+
+        guard let image = renderer.uiImage else {
+            saveAlertKey = "summary.save_failed"
+            return
+        }
+
+        do {
+            try await PHPhotoLibrary.shared().performChanges {
+                PHAssetChangeRequest.creationRequestForAsset(from: image)
+            }
+            saveAlertKey = "summary.save_success"
+        } catch {
+            saveAlertKey = "summary.save_failed"
         }
     }
 
@@ -321,35 +364,6 @@ struct MedicalSummaryView: View {
         return value
     }
 
-    private var shareSummaryText: String {
-        let accompanying = localizedAnswers(viewModel.accompanyingSymptoms).sorted().joined(separator: ", ")
-        let medicines = localizedAnswers(viewModel.medications).sorted().joined(separator: ", ")
-        let environment = viewModel.workEnvironment.selectedConditions.sorted().map(localizedAnswer).joined(separator: "\n")
-
-        return """
-        \(localized("summary.navigation"))
-        \(summaryTitle)
-        \(summaryDescription)
-
-        \(localized("summary.duration")): \(localizedAnswer(viewModel.duration))
-        \(localized("summary.frequency")): \(localizedAnswer(viewModel.frequency))
-        \(localized("summary.intensity")): \(intensityDescription)
-        \(localized("summary.accompanying")): \(accompanying)
-        \(localized("summary.medication")): \(medicines)
-        \(localized("summary.environment")):\n\(environment)
-        """
-    }
-}
-
-private struct ActivityView: UIViewControllerRepresentable {
-    let items: [Any]
-
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
-    }
-
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {
-    }
 }
 
 #Preview {
