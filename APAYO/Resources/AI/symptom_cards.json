@@ -1,0 +1,85 @@
+{
+  "schema_version": "1.0",
+  "cards": [
+    {
+      "id": "card_default",
+      "asset_name": "SymptomCard_Default",
+      "title_ko": "기타 증상",
+      "title_en": "Other symptom",
+      "concept": "other_or_unspecified_symptom",
+      "is_fallback": true
+    },
+    {
+      "id": "card_chest_tightness",
+      "asset_name": "SymptomCard_ChestTightness",
+      "title_ko": "가슴 답답함",
+      "title_en": "Chest tightness",
+      "concept": "chest_tightness",
+      "is_fallback": false
+    },
+    {
+      "id": "card_chills",
+      "asset_name": "SymptomCard_Chills",
+      "title_ko": "오한",
+      "title_en": "Chills",
+      "concept": "chills",
+      "is_fallback": false
+    },
+    {
+      "id": "card_cough",
+      "asset_name": "SymptomCard_Cough",
+      "title_ko": "기침",
+      "title_en": "Cough",
+      "concept": "cough",
+      "is_fallback": false
+    },
+    {
+      "id": "card_dizziness",
+      "asset_name": "SymptomCard_Dizziness",
+      "title_ko": "어지러움",
+      "title_en": "Dizziness",
+      "concept": "dizziness",
+      "is_fallback": false
+    },
+    {
+      "id": "card_headache",
+      "asset_name": "SymptomCard_Headache",
+      "title_ko": "두통",
+      "title_en": "Headache",
+      "concept": "headache",
+      "is_fallback": false
+    },
+    {
+      "id": "card_hives",
+      "asset_name": "SymptomCard_Hives",
+      "title_ko": "두드러기",
+      "title_en": "Hives",
+      "concept": "hives",
+      "is_fallback": false
+    },
+    {
+      "id": "card_stomachache",
+      "asset_name": "SymptomCard_Stomachache",
+      "title_ko": "복통",
+      "title_en": "Stomachache",
+      "concept": "stomachache",
+      "is_fallback": false
+    },
+    {
+      "id": "card_toothache",
+      "asset_name": "SymptomCard_Toothache",
+      "title_ko": "치통",
+      "title_en": "Toothache",
+      "concept": "toothache",
+      "is_fallback": false
+    },
+    {
+      "id": "card_vomiting",
+      "asset_name": "SymptomCard_Vomiting",
+      "title_ko": "구토",
+      "title_en": "Vomiting",
+      "concept": "vomiting",
+      "is_fallback": false
+    }
+  ]
+}
