@@ -421,7 +421,11 @@ struct APAYOCustomInputSheet: View {
                     selections: .constant([])
                 ) { path.append(.aiFollowUp) }
             case .aiFollowUp:
-                AIFollowUpView(selections: .constant([]), onNext: {})
+                AIFollowUpView(
+                    viewModel: MedicalInterviewAIViewModel(),
+                    context: PreviewMockData.medicalInterviewContext,
+                    onNext: {}
+                )
             default:
                 EmptyView()
             }

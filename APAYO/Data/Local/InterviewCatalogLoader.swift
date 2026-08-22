@@ -1,5 +1,9 @@
 import Foundation
 
+protocol SymptomCardCatalogLoading {
+    func loadSymptomCards() throws -> SymptomCardCatalog
+}
+
 enum InterviewCatalogLoadingError: LocalizedError, Equatable {
     case resourceNotFound(name: String)
     case resourceUnreadable(name: String)
@@ -17,7 +21,7 @@ enum InterviewCatalogLoadingError: LocalizedError, Equatable {
     }
 }
 
-struct InterviewCatalogLoader {
+struct InterviewCatalogLoader: SymptomCardCatalogLoading {
     private let bundle: Bundle
 
     init(bundle: Bundle = .main) {

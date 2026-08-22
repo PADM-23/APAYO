@@ -6,6 +6,7 @@ struct MedicalSummaryView: View {
     @Environment(\.displayScale) private var displayScale
     @EnvironmentObject private var languageStore: AppLanguageStore
     @ObservedObject var viewModel: PatientFlowViewModel
+    let aiViewModel: MedicalInterviewAIViewModel
     let onFindFacility: () -> Void
 
     @State private var showsKorean = false
@@ -50,7 +51,7 @@ struct MedicalSummaryView: View {
             languagePicker
                 .padding(.top, 24)
 
-            Image("SymptomCards/Heatstroke")
+            Image(aiViewModel.selectedCardAssetName)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 226, height: 226)
@@ -276,13 +277,25 @@ struct MedicalSummaryView: View {
     }
 
     private var summaryTitle: String {
+        if showsKorean,
+           case .success(let response) = aiViewModel.summaryState,
+           let symptom = response.symptoms.first?.nameKo {
+            return symptom
+        }
+
         let symptom = viewModel.extractedSymptoms.first ?? viewModel.originalSymptom
         if symptom.isEmpty { return localized("summary.default_symptom") }
         return symptom.contains(".") ? localized(symptom) : symptom
     }
 
     private var summaryDescription: String {
-        localized("summary.description")
+        if showsKorean, case .success(let response) = aiViewModel.summaryState {
+            return response.medicalSummaryKo
+        }
+        if case .success(let response) = aiViewModel.summaryState {
+            return response.medicalSummaryUser
+        }
+        return localized("summary.description")
     }
 
     private var intensityDescription: String {
@@ -368,7 +381,11 @@ struct MedicalSummaryView: View {
 
 #Preview {
     NavigationStack {
-        MedicalSummaryView(viewModel: PatientFlowViewModel(), onFindFacility: {})
+        MedicalSummaryView(
+            viewModel: PatientFlowViewModel(),
+            aiViewModel: MedicalInterviewAIViewModel(),
+            onFindFacility: {}
+        )
             .environmentObject(AppLanguageStore())
     }
 }

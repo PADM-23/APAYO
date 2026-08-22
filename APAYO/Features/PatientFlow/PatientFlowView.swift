@@ -4,6 +4,7 @@ struct PatientFlowView: View {
     @EnvironmentObject private var languageStore: AppLanguageStore
     @State private var path: [PatientFlowRoute] = []
     @StateObject private var viewModel = PatientFlowViewModel()
+    @State private var aiViewModel = MedicalInterviewAIViewModel()
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -89,7 +90,7 @@ struct PatientFlowView: View {
             SymptomInputView(
                 symptom: $viewModel.originalSymptom
             ) {
-                path.append(.symptomAnalysis)
+                path.append(.interviewStart)
             }
         case .symptomAnalysis:
             SymptomAnalysisLoadingView {
@@ -145,14 +146,21 @@ struct PatientFlowView: View {
                 selections: $viewModel.medications,
                 completedSteps: 3
             ) {
+                aiViewModel.reset()
                 path.append(.aiFollowUp)
             }
         case .aiFollowUp:
-            AIFollowUpView(selections: $viewModel.workEnvironment.selectedConditions) {
+            AIFollowUpView(
+                viewModel: aiViewModel,
+                context: medicalInterviewContext
+            ) {
                 path.append(.medicalSummary)
             }
         case .medicalSummary:
-            MedicalSummaryView(viewModel: viewModel) {
+            MedicalSummaryView(
+                viewModel: viewModel,
+                aiViewModel: aiViewModel
+            ) {
                 path.append(.facilitySearch)
             }
         case .facilitySearch:
@@ -162,6 +170,49 @@ struct PatientFlowView: View {
 
     private func text(_ key: String) -> String {
         languageStore.language.localized(key)
+    }
+
+    private var medicalInterviewContext: MedicalInterviewContext {
+        MedicalInterviewContext(
+            originalSymptom: OriginalSymptom(
+                text: viewModel.originalSymptom,
+                languageHint: languageStore.language.rawValue
+            ),
+            medicalHistory: MedicalHistory(
+                chronicConditions: localizedSelections(viewModel.chronicConditions, excludingNone: true),
+                allergies: localizedSelections(viewModel.allergies, excludingNone: true),
+                familyHistory: localizedSelections(viewModel.familyHistory, excludingNone: true),
+                substanceUse: localizedAnswer(viewModel.substanceUse),
+                surgeryHistory: localizedAnswer(viewModel.surgeryHistory)
+            ),
+            baseInterview: BaseInterview(
+                duration: localizedAnswer(viewModel.duration),
+                frequency: localizedAnswer(viewModel.frequency),
+                painIntensity: viewModel.painIntensity,
+                accompanyingSymptoms: localizedSelections(
+                    viewModel.accompanyingSymptoms,
+                    excludingNone: true
+                ),
+                medications: localizedSelections(viewModel.medications, excludingNone: true),
+                workEnvironment: []
+            ),
+            weatherContext: nil
+        )
+    }
+
+    private func localizedSelections(
+        _ selections: Set<String>,
+        excludingNone: Bool = false
+    ) -> [String] {
+        selections
+            .filter { !excludingNone || $0 != "choice.none" }
+            .map { localizedAnswer($0) ?? $0 }
+            .sorted()
+    }
+
+    private func localizedAnswer(_ answer: String?) -> String? {
+        guard let answer else { return nil }
+        return answer.contains(".") ? languageStore.language.localized(answer) : answer
     }
 
     private var fallbackTitle: String {

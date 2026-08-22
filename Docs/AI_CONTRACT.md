@@ -2,50 +2,157 @@
 
 ## 목적
 
-이 문서는 iOS 앱, Azure Functions API, Azure OpenAI 사이에서 사용하는 증상 분석 계약을 정의합니다.
+APAYO는 외국인 계절 농업 근로자가 모국어로 입력한 증상과 문진 답변을 의료진에게 전달 가능한 한국어 정보로 구조화합니다.
 
-AI의 역할은 사용자가 입력한 정보를 구조화하고, 앱에 준비된 증상 카드와 후속 질문을 선택하는 것입니다. AI는 진단하거나 약·치료를 추천하지 않습니다.
+AI는 다음 작업만 수행합니다.
 
-## 데이터 흐름
+1. 기본 문진 이후 부족한 맥락을 확인할 체크형 추가 질문 2~4개 생성
+2. 전체 문진 이후 증상 정보를 한국어로 구조화
+3. 준비된 그림 카드 중 하나의 `card_id` 선택
+4. 의료진용 한국어 문진 요약 생성
+
+AI는 진단, 질병 확률 추정, 약·복용량·치료 추천, 의료기관 방문 여부 결정을 수행하지 않습니다.
+
+## 전체 데이터 흐름
 
 ```text
-iOS symptom input
-  -> Azure Functions proxy
-  -> Azure OpenAI Structured Outputs
-  -> Azure Functions validation
-  -> iOS
+모국어 자유 증상 입력
+  -> 앱의 기본 문진
+  -> POST /api/v2/follow-up-questions
+  -> 사용자가 AI 추가 질문에 체크
+  -> POST /api/v2/medical-interview-summary
+  -> 구조화된 한국어 증상 + 그림 카드 + 의료진용 한국어 요약
 ```
 
-Azure OpenAI 자격 증명은 Azure Functions의 환경 변수로 관리하고 iOS 앱에 포함하지 않습니다.
+Azure OpenAI 자격 증명은 Azure Functions 환경 변수로 관리하며 iOS 앱에 포함하지 않습니다.
 
-## API
+## 공통 문진 맥락
 
-```http
-POST /api/v1/symptom-analysis
-Content-Type: application/json
-```
-
-## 요청
+두 API는 동일한 `context` 구조를 사용합니다.
 
 ```json
 {
-  "schema_version": "1.0",
-  "input": {
-    "text": "Masakit ang ulo ko at nahihilo ako simula kaninang umaga.",
-    "language_hint": null
+  "original_symptom": {
+    "text": "Masakit ang ulo ko at nahihilo ako mula kaninang umaga.",
+    "language_hint": "fil"
   },
-  "work_context": {
-    "worked_today": true,
-    "work_type": "outdoor_farm_work",
-    "pesticide_exposure": "unknown",
-    "injury_or_fall": "unknown"
+  "medical_history": {
+    "chronic_conditions": [],
+    "allergies": [],
+    "family_history": [],
+    "substance_use": "Hindi umiinom o naninigarilyo",
+    "surgery_history": "Walang operasyon"
+  },
+  "base_interview": {
+    "duration": "Nagsimula ngayong umaga",
+    "frequency": "Patuloy",
+    "pain_intensity": 6,
+    "accompanying_symptoms": ["Pagkahilo", "Pagduduwal"],
+    "medications": [],
+    "work_environment": ["Nagtrabaho sa greenhouse ngayong araw"]
   },
   "weather_context": {
-    "observed_at": "2026-08-22T14:00:00+09:00",
+    "observed_at": "2026-08-23T14:00:00+09:00",
     "temperature_celsius": 34.2,
     "humidity_percent": 71,
     "heat_warning": true
+  }
+}
+```
+
+아직 수집하지 않은 값은 `null` 또는 빈 배열을 사용합니다. AI는 누락된 정보를 추측하지 않습니다.
+
+## 1차 API: 맥락형 추가 질문 생성
+
+```http
+POST /api/v2/follow-up-questions
+Content-Type: application/json
+```
+
+### 요청
+
+```json
+{
+  "schema_version": "2.0",
+  "context": { "...": "공통 문진 맥락" }
+}
+```
+
+### 응답
+
+```json
+{
+  "schema_version": "2.0",
+  "detected_language": {
+    "code": "fil",
+    "name": "Filipino"
   },
+  "question_groups": [
+    {
+      "title_user": "Suriin ang kapaligiran sa trabaho",
+      "title_ko": "작업 환경 추가 확인",
+      "questions": [
+        {
+          "id": "fq_1",
+          "prompt_user": "Hindi ako nakainom ng sapat na tubig habang nagtatrabaho.",
+          "prompt_ko": "작업 중 수분을 충분히 섭취하지 못했습니다.",
+          "category": "work_environment",
+          "answer_type": "checkbox_yes"
+        },
+        {
+          "id": "fq_2",
+          "prompt_user": "Nagpatuloy ang mga sintomas kahit nagpahinga na ako.",
+          "prompt_ko": "휴식 후에도 증상이 계속되었습니다.",
+          "category": "symptom_change",
+          "answer_type": "checkbox_yes"
+        }
+      ]
+    }
+  ],
+  "safety_flags": []
+}
+```
+
+### 추가 질문 규칙
+
+- 그룹은 1~2개입니다.
+- 전체 질문은 2~4개입니다.
+- ID는 표시 순서대로 `fq_1`부터 `fq_4`까지 중복 없이 사용합니다.
+- 모든 항목은 한 가지 사실만 확인하는 예/아니요 질문이며, 체크하면 `예`를 뜻합니다.
+- 모든 항목의 `answer_type`은 `checkbox_yes`로 고정됩니다.
+- `그리고`, `또는` 등으로 서로 다른 사실을 한 항목에 묶지 않습니다.
+- 숫자, 자유 서술, 여러 내용을 한꺼번에 요구하는 질문은 생성하지 않습니다.
+- `title_user`와 `prompt_user`는 사용자 언어로 생성합니다.
+- `title_ko`와 `prompt_ko`는 의료진 전달용 한국어로 함께 생성합니다.
+- 이미 기본 문진에서 명확히 답한 내용을 반복하지 않습니다.
+- 섹션 제목과 질문에 진단 또는 치료 추천을 포함하지 않습니다.
+
+허용 카테고리:
+
+```text
+symptom_change
+associated_symptom
+safety
+work_environment
+exposure
+medical_context
+```
+
+## 2차 API: 최종 의료진용 결과
+
+```http
+POST /api/v2/medical-interview-summary
+Content-Type: application/json
+```
+
+### 요청
+
+```json
+{
+  "schema_version": "2.0",
+  "context": { "...": "공통 문진 맥락" },
+  "question_groups": ["1차 API가 반환한 그룹 전체"],
+  "selected_follow_up_question_ids": ["fq_1", "fq_2"],
   "allowed_card_ids": [
     "card_default",
     "card_chest_tightness",
@@ -57,48 +164,27 @@ Content-Type: application/json
     "card_stomachache",
     "card_toothache",
     "card_vomiting"
-  ],
-  "allowed_question_ids": [
-    "q_onset",
-    "q_severity",
-    "q_getting_worse",
-    "q_fever",
-    "q_breathing_difficulty",
-    "q_loss_of_consciousness",
-    "q_heat_exposure",
-    "q_water_intake",
-    "q_pesticide_exposure",
-    "q_injury_or_fall",
-    "q_insect_bite",
-    "q_other_medication"
   ]
 }
 ```
 
-### 요청 필드 규칙
+체크한 ID는 반드시 1차 API가 생성한 질문에 존재해야 합니다. 체크되지 않은 항목은 명시적인 `아니오`가 아니라 `확인되지 않음`으로 취급합니다.
 
-- `schema_version`은 현재 `1.0`입니다.
-- `input.text`는 공백이 아닌 문자열이어야 합니다.
-- `input.language_hint`는 ISO 639-1 언어 코드 또는 `null`입니다.
-- `work_context`와 `weather_context`는 수집하지 못한 경우 각각 `null`일 수 있습니다.
-- 확인되지 않은 노출 여부는 추측하지 않고 `unknown`을 사용합니다.
-- iOS가 전달한 ID는 서버가 보유한 허용 목록과 다시 대조합니다.
-
-## 응답
+### 응답
 
 ```json
 {
-  "schema_version": "1.0",
+  "schema_version": "2.0",
   "detected_language": {
-    "code": "tl",
-    "name": "Tagalog"
+    "code": "fil",
+    "name": "Filipino"
   },
   "symptoms": [
     {
       "name_ko": "두통",
       "body_part_ko": "머리",
       "onset_text_ko": "오늘 아침",
-      "severity": null
+      "severity": 6
     },
     {
       "name_ko": "어지러움",
@@ -108,42 +194,23 @@ Content-Type: application/json
     }
   ],
   "selected_card_id": "card_headache",
-  "selected_question_ids": [
-    "q_severity",
-    "q_heat_exposure",
-    "q_water_intake"
-  ],
-  "safety_flags": [],
-  "clarification_note_ko": null
+  "medical_summary_user": "Masakit ang ulo ko at nahihilo ako mula kaninang umaga. Ang tindi ng sakit ay 6 sa 10. Hindi ako nakainom ng sapat na tubig habang nagtatrabaho sa greenhouse, at nagpatuloy ang mga sintomas kahit nagpahinga ako.",
+  "medical_summary_ko": "오늘 아침부터 두통과 어지러움이 지속되며 통증 강도는 6점으로 응답함. 비닐하우스 작업 중 수분 섭취가 부족했고 휴식 후에도 증상이 지속됐다고 표시함.",
+  "safety_flags": []
 }
 ```
 
-### 응답 필드 규칙
+### 최종 결과 규칙
 
-- `symptoms`는 최소 1개, 최대 5개입니다.
-- 사용자가 직접 말하지 않은 정보는 추측하지 않고 `null`로 반환합니다.
-- `severity`는 사용자가 말한 경우에만 0부터 10까지의 정수로 반환합니다.
-- `selected_card_id`는 허용된 카드 ID 중 정확히 하나입니다.
-- 대응하는 카드가 없으면 `card_default`를 반환합니다.
-- `selected_question_ids`는 허용 목록에서 중복 없이 2개 이상 4개 이하입니다.
-- 질문은 이미 확인된 내용보다 아직 확인되지 않은 중요 정보를 우선합니다.
-- AI는 새로운 카드 ID나 질문 ID를 만들 수 없습니다.
-- `clarification_note_ko`는 번역 또는 의미가 불확실할 때만 사용합니다.
-
-## 카드 선택 규칙
-
-1. 입력과 명확하게 대응하는 카드가 있으면 해당 카드를 선택합니다.
-2. 증상이 여러 개이면 주된 증상을 가장 잘 표현하는 카드 하나를 선택합니다.
-3. 어느 카드에도 명확히 해당하지 않으면 `card_default`를 선택합니다.
-4. 서버는 허용되지 않은 ID를 받으면 응답을 실패 처리하거나 `card_default`로 대체합니다.
-
-## 후속 질문 선택 규칙
-
-1. 반드시 `follow_up_questions.json`에 존재하는 ID만 선택합니다.
-2. 질문은 2개 이상 4개 이하를 선택합니다.
-3. 안전 확인이 필요하면 안전 관련 질문을 우선합니다.
-4. 작업 및 날씨 맥락과 관련된 질문을 우선할 수 있습니다.
-5. 사용자가 원문에서 이미 명확히 답한 질문은 다시 선택하지 않습니다.
+- 증상은 1~5개입니다.
+- 확인되지 않은 신체 부위, 시작 시점, 강도는 `null`입니다.
+- `selected_card_id`는 준비된 카드 ID 중 하나입니다.
+- 명확히 대응하는 카드가 없으면 `card_default`를 사용합니다.
+- `medical_summary_user`는 사용자의 언어로 작성합니다.
+- `medical_summary_ko`는 의료진 전달용 한국어로 작성합니다.
+- 두 요약은 언어만 다르고 동일한 보고 사실을 포함합니다.
+- 두 요약 모두 사용자가 말하거나 선택한 사실만 포함합니다.
+- 미선택 체크 항목을 부정 답변으로 기록하지 않습니다.
 
 ## 안전 제한
 
@@ -155,7 +222,7 @@ AI는 다음 작업을 수행하지 않습니다.
 - 의료기관 방문 여부를 임의로 결정
 - 사용자가 말하지 않은 병력이나 증상 추측
 
-허용되는 `safety_flags` 값은 다음과 같습니다.
+허용되는 `safety_flags`:
 
 ```text
 breathing_difficulty
@@ -166,29 +233,23 @@ severe_bleeding
 possible_severe_allergic_reaction
 ```
 
-`safety_flags`는 진단 결과가 아닙니다. 앱은 각 flag에 대응하는 사전 검토된 고정 안내 문구를 표시해야 합니다. AI가 응급 안내 문장을 자유롭게 생성하도록 하지 않습니다.
+`safety_flags`는 진단 결과가 아닙니다. 앱은 사전 검토된 고정 안내 문구만 사용해야 하며 AI가 응급 안내 문장을 자유롭게 생성하지 않습니다.
 
-## 서버 검증
+## 검증 책임
 
-Azure Functions는 AI 응답을 iOS에 전달하기 전에 다음을 확인합니다.
+Azure Functions는 AI 응답을 iOS에 전달하기 전에 다음을 검사합니다.
 
-- Structured Outputs JSON Schema 통과 여부
+- Structured Outputs JSON Schema 준수
 - 스키마 버전
-- 증상 개수
-- severity 범위
-- 카드 ID 존재 여부
-- 질문 ID 존재 여부
-- 질문 개수와 중복
-- safety flag 허용 여부
+- 질문 그룹·질문 개수
+- 질문 ID와 카테고리
+- 질문 ID 중복
+- 체크한 ID가 실제 생성된 질문인지
+- 증상 개수와 강도 범위
+- 카드 ID와 safety flag 허용 여부
 
-Structured Outputs 검증에 실패하면 부분 응답을 사용하지 않고 명시적인 API 오류를 반환합니다.
+검증에 실패하면 부분 응답을 사용하지 않고 명시적인 API 오류를 반환합니다.
 
-## 선택적 의료진 요약
+## 레거시 API
 
-증상 분석 API가 안정화된 뒤 별도 API로 구현합니다.
-
-```http
-POST /api/v1/medical-summary
-```
-
-요약 API는 구조화된 증상, 후속 질문 답변, 작업 환경, 날씨 정보를 입력받아 의료진용 한국어 문진 정보를 생성합니다. 진단 및 치료 추천은 포함하지 않습니다.
+`POST /api/v1/symptom-analysis`는 iOS 전환이 끝날 때까지만 호환성을 위해 유지합니다. 새 사용자 플로우에서는 v2 API 두 개를 사용합니다.
