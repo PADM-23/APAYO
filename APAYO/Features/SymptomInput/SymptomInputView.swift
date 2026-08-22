@@ -3,11 +3,12 @@ import SwiftUI
 struct SymptomInputView: View {
     @EnvironmentObject private var languageStore: AppLanguageStore
     @Binding var symptom: String
+    let onNeedGuidance: () -> Void
     let onNext: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: 72)
+            Spacer().frame(height: 40)
 
             Menu {
                 ForEach(AppLanguage.allCases) { language in
@@ -36,14 +37,16 @@ struct SymptomInputView: View {
                 .overlay { Capsule().stroke(Color.apayoGray300, lineWidth: 2) }
             }
 
+            Spacer(minLength: 24)
+
             Text(languageStore.language.localized("symptom.title"))
                 .font(.system(size: 28, weight: .bold))
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 346)
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.top, 54)
+                .padding(.top, 0)
 
-            Spacer().frame(height: 58)
+            Spacer().frame(height: 38)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
@@ -79,7 +82,46 @@ struct SymptomInputView: View {
             .padding(.horizontal, APAYOTheme.horizontalPadding)
             .padding(.top, 18)
 
-            Spacer()
+            Spacer(minLength: 24)
+
+            Button(action: onNeedGuidance) {
+                HStack(spacing: 14) {
+                    Image(systemName: "safari.fill")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(Color.apayoGreen)
+                        .frame(width: 42, height: 42)
+                        .background(Color.apayoBrightGreen.opacity(0.2), in: Circle())
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(languageStore.language.localized("symptom.guide.title"))
+                            .font(.headline)
+                            .foregroundStyle(Color.apayoGray800)
+
+                        Text(languageStore.language.localized("symptom.guide.subtitle"))
+                            .font(.subheadline)
+                            .foregroundStyle(Color.apayoGray600)
+                            .multilineTextAlignment(.leading)
+                    }
+
+                    Spacer(minLength: 8)
+
+                    Image(systemName: "chevron.right")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(Color.apayoGreen)
+                }
+                .padding(.horizontal, 16)
+                .frame(maxWidth: .infinity, minHeight: 78)
+                .background(.white.opacity(0.82), in: RoundedRectangle(cornerRadius: APAYOTheme.listCornerRadius, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: APAYOTheme.listCornerRadius, style: .continuous)
+                        .stroke(Color.apayoGreen.opacity(0.22), lineWidth: 1)
+                }
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, APAYOTheme.horizontalPadding)
+            .accessibilityElement(children: .combine)
+
+            Spacer().frame(height: 24)
         }
         .background {
             ZStack {
@@ -101,7 +143,12 @@ struct SymptomInputView: View {
     }
 
     private var suggestionItems: [String] {
-        Array(repeating: languageStore.language.localized("symptom.suggestion"), count: 3)
+        [
+            "symptom.suggestion.stomachache",
+            "symptom.suggestion.dizziness",
+            "symptom.suggestion.cough"
+        ]
+        .map(languageStore.language.localized)
     }
 }
 
@@ -109,6 +156,7 @@ struct SymptomInputView: View {
     NavigationStack {
         SymptomInputView(
             symptom: .constant(""),
+            onNeedGuidance: {},
             onNext: {}
         )
         .environmentObject(AppLanguageStore())

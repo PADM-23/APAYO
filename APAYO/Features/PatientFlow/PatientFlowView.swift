@@ -88,10 +88,15 @@ struct PatientFlowView: View {
             ) { path.append(.symptomInput) }
         case .symptomInput:
             SymptomInputView(
-                symptom: $viewModel.originalSymptom
-            ) {
-                path.append(.interviewStart)
-            }
+                symptom: $viewModel.originalSymptom,
+                onNeedGuidance: { path.append(.careGuide) },
+                onNext: { path.append(.interviewStart) }
+            )
+        case .careGuide:
+            CareGuideView(
+                onCreateSymptomCard: { path.removeLast() },
+                onFindFacility: { path.append(.facilitySearch) }
+            )
         case .symptomAnalysis:
             SymptomAnalysisLoadingView {
                 path.removeLast()
