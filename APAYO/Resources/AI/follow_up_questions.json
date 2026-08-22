@@ -1,0 +1,113 @@
+{
+  "schema_version": "1.0",
+  "questions": [
+    {
+      "id": "q_onset",
+      "category": "symptom_detail",
+      "answer_type": "short_text",
+      "prompt": {
+        "ko": "증상이 언제 시작됐습니까?",
+        "en": "When did the symptoms begin?"
+      }
+    },
+    {
+      "id": "q_severity",
+      "category": "symptom_detail",
+      "answer_type": "scale_0_to_10",
+      "prompt": {
+        "ko": "증상이 가장 심할 때를 0점에서 10점으로 표현하면 몇 점입니까?",
+        "en": "On a scale from 0 to 10, how severe are the symptoms at their worst?"
+      }
+    },
+    {
+      "id": "q_getting_worse",
+      "category": "symptom_detail",
+      "answer_type": "yes_no_unknown",
+      "prompt": {
+        "ko": "증상이 점점 심해지고 있습니까?",
+        "en": "Are the symptoms getting worse?"
+      }
+    },
+    {
+      "id": "q_fever",
+      "category": "associated_symptom",
+      "answer_type": "yes_no_unknown",
+      "prompt": {
+        "ko": "열이 나거나 몸이 뜨겁다고 느낍니까?",
+        "en": "Do you have a fever or feel unusually hot?"
+      }
+    },
+    {
+      "id": "q_breathing_difficulty",
+      "category": "safety",
+      "answer_type": "yes_no_unknown",
+      "prompt": {
+        "ko": "숨을 쉬기 어렵습니까?",
+        "en": "Are you having difficulty breathing?"
+      }
+    },
+    {
+      "id": "q_loss_of_consciousness",
+      "category": "safety",
+      "answer_type": "yes_no_unknown",
+      "prompt": {
+        "ko": "의식을 잃었거나 쓰러진 적이 있습니까?",
+        "en": "Have you lost consciousness or collapsed?"
+      }
+    },
+    {
+      "id": "q_heat_exposure",
+      "category": "work_environment",
+      "answer_type": "yes_no_unknown",
+      "prompt": {
+        "ko": "더운 야외에서 일한 뒤 증상이 시작됐습니까?",
+        "en": "Did the symptoms begin after working outside in the heat?"
+      }
+    },
+    {
+      "id": "q_water_intake",
+      "category": "work_environment",
+      "answer_type": "yes_no_unknown",
+      "prompt": {
+        "ko": "오늘 물을 충분히 마셨습니까?",
+        "en": "Did you drink enough water today?"
+      }
+    },
+    {
+      "id": "q_pesticide_exposure",
+      "category": "work_environment",
+      "answer_type": "yes_no_unknown",
+      "prompt": {
+        "ko": "오늘 농약을 사용했거나 농약 살포 장소 가까이에 있었습니까?",
+        "en": "Did you use pesticides or stay near pesticide spraying today?"
+      }
+    },
+    {
+      "id": "q_injury_or_fall",
+      "category": "work_environment",
+      "answer_type": "yes_no_unknown",
+      "prompt": {
+        "ko": "오늘 넘어지거나 몸을 부딪힌 적이 있습니까?",
+        "en": "Did you fall or hit any part of your body today?"
+      }
+    },
+    {
+      "id": "q_insect_bite",
+      "category": "work_environment",
+      "answer_type": "yes_no_unknown",
+      "prompt": {
+        "ko": "벌이나 다른 벌레에 물리거나 쏘였습니까?",
+        "en": "Were you bitten or stung by a bee or another insect?"
+      }
+    },
+    {
+      "id": "q_other_medication",
+      "category": "medical_context",
+      "answer_type": "yes_no_unknown",
+      "prompt": {
+        "ko": "현재 복용 중인 약이 있습니까?",
+        "en": "Are you currently taking any medication?"
+      }
+    }
+  ]
+}
