@@ -1,0 +1,41 @@
+name: 버그 신고
+description: 재현 가능한 문제를 신고합니다.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 문제
+      placeholder: 발생한 문제를 간단히 적어주세요.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 재현 방법
+      placeholder: "1. 증상을 입력한다.\n2. 다음 버튼을 누른다.\n3. 앱이 종료된다."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대 결과
+      placeholder: 다음 문진 화면이 표시되어야 합니다.
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: 실행 환경
+      placeholder: iPhone 16, iOS 26.0
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 참고 자료
+      description: 스크린샷이나 오류 로그가 있으면 첨부해주세요. 개인정보와 비밀키는 제거해주세요.
+
