@@ -8,6 +8,7 @@ struct MedicalSummaryView: View {
     @ObservedObject var viewModel: PatientFlowViewModel
     let aiViewModel: MedicalInterviewAIViewModel
     let onFindFacility: () -> Void
+    let onBackToSymptomInput: () -> Void
 
     @State private var showsKorean = false
     @State private var saveAlertKey: String?
@@ -20,20 +21,29 @@ struct MedicalSummaryView: View {
         .navigationTitle(localized("summary.navigation"))
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
-            HStack(spacing: 6) {
-                Button {
-                    Task { await saveSummaryImage() }
-                } label: {
-                    Image(systemName: "square.and.arrow.down.fill")
-                        .font(.title2.bold())
-                        .foregroundStyle(.white)
-                        .frame(width: 64, height: 64)
-                        .background(Color.apayoGreen, in: RoundedRectangle(cornerRadius: 24))
+            VStack(spacing: 8) {
+                HStack(spacing: 6) {
+                    Button {
+                        Task { await saveSummaryImage() }
+                    } label: {
+                        Image(systemName: "square.and.arrow.down.fill")
+                            .font(.title2.bold())
+                            .foregroundStyle(.white)
+                            .frame(width: 64, height: 64)
+                            .background(Color.apayoGreen, in: RoundedRectangle(cornerRadius: 24))
+                    }
+
+                    APAYOButton(
+                        title: LocalizedStringKey(localized("summary.find_facility")),
+                        action: onFindFacility
+                    )
                 }
 
                 APAYOButton(
-                    title: LocalizedStringKey(localized("summary.find_facility")),
-                    action: onFindFacility
+                    title: LocalizedStringKey(localized("summary.back_to_symptom_input")),
+                    systemImage: "arrow.counterclockwise",
+                    style: .secondary,
+                    action: onBackToSymptomInput
                 )
             }
             .padding(.horizontal, 21)
@@ -398,7 +408,8 @@ struct MedicalSummaryView: View {
         MedicalSummaryView(
             viewModel: PatientFlowViewModel(),
             aiViewModel: MedicalInterviewAIViewModel(),
-            onFindFacility: {}
+            onFindFacility: {},
+            onBackToSymptomInput: {}
         )
             .environmentObject(AppLanguageStore())
     }

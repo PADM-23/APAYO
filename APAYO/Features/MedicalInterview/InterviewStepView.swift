@@ -190,6 +190,7 @@ struct MultiChoiceInterviewView: View {
     let options: [String]
     @Binding var selections: Set<String>
     var completedSteps: Int = 2
+    var noneOptionLocalizationKey = "choice.none"
     let onNext: () -> Void
 
     @State private var isCustomInputPresented = false
@@ -291,7 +292,9 @@ struct MultiChoiceInterviewView: View {
     }
 
     private func display(_ value: String) -> String {
-        options.contains(value) ? languageStore.language.localized(value) : value
+        guard options.contains(value) else { return value }
+        let localizationKey = value == "choice.none" ? noneOptionLocalizationKey : value
+        return languageStore.language.localized(localizationKey)
     }
 }
 

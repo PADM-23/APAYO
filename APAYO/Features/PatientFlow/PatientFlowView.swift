@@ -88,10 +88,15 @@ struct PatientFlowView: View {
             ) { path.append(.symptomInput) }
         case .symptomInput:
             SymptomInputView(
-                symptom: $viewModel.originalSymptom
-            ) {
-                path.append(.interviewStart)
-            }
+                symptom: $viewModel.originalSymptom,
+                onNeedGuidance: { path.append(.careGuide) },
+                onNext: { path.append(.interviewStart) }
+            )
+        case .careGuide:
+            CareGuideView(
+                onCreateSymptomCard: { path.removeLast() },
+                onFindFacility: { path.append(.facilitySearch) }
+            )
         case .symptomAnalysis:
             SymptomAnalysisLoadingView {
                 path.removeLast()
@@ -144,7 +149,8 @@ struct PatientFlowView: View {
                 subtitle: text("interview.medication.subtitle"),
                 options: PreviewMockData.medicationOptions,
                 selections: $viewModel.medications,
-                completedSteps: 3
+                completedSteps: 3,
+                noneOptionLocalizationKey: "common.none"
             ) {
                 aiViewModel.reset()
                 path.append(.aiFollowUp)
@@ -176,6 +182,8 @@ struct PatientFlowView: View {
                 aiViewModel: aiViewModel
             ) {
                 path.append(.facilitySearch)
+            } onBackToSymptomInput: {
+                backToSymptomInput()
             }
         case .facilitySearch:
             FacilitySearchView()
@@ -227,6 +235,13 @@ struct PatientFlowView: View {
     private func localizedAnswer(_ answer: String?) -> String? {
         guard let answer else { return nil }
         return answer.contains(".") ? languageStore.language.localized(answer) : answer
+    }
+
+    private func backToSymptomInput() {
+        guard let symptomInputIndex = path.lastIndex(of: .symptomInput) else { return }
+        let routesAfterSymptomInput = path.index(after: symptomInputIndex)..<path.endIndex
+        path.removeSubrange(routesAfterSymptomInput)
+        aiViewModel.reset()
     }
 
     private var fallbackTitle: String {
