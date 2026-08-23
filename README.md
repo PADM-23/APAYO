@@ -217,10 +217,10 @@ http://127.0.0.1:7071/api
 
 | Member | Role | Responsibility |
 | --- | --- | --- |
-| Ahae | iOS Developer | SwiftUI UI, 공공데이터 및 지도 연동 |
-| Myong | iOS Developer | AI 파이프라인, Azure Functions, 데이터 모델 및 문진 흐름 |
-| Pony | UI/UX Designer | 다국어 사용자 경험과 문진 UI/UX 설계 |
-| Ddoechii | UI/UX Designer | 의료진용 결과 화면, 브랜딩 및 피치덱 |
+| Myong | Developer | SwiftUI UI, 지도 연동, 다국어 현지화 및 언어 상태 관리, 공공데이터 전처리 파이프라인, JSON 모델링 및 비동기 데이터 로딩  |
+| Ahae | Developer | SwiftUI UI, AI 파이프라인, Azure Functions, 데이터 모델 및 문진 흐름 |
+| Pony | UI/UX Designer | 다국어 사용자 경험과 문진 UI/UX 설계, 브랜딩 및 피치덱 |
+| Ddoechii | UI/UX Designer | 증상 입력 경험 설계, 의료진용 결과 화면, 브랜딩 및 피치덱 |
 
 ## License
 
