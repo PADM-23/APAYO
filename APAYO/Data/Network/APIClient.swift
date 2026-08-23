@@ -24,7 +24,7 @@ struct APIClient {
     private let decoder: JSONDecoder
 
     init(
-        configuration: APIConfiguration = .local,
+        configuration: APIConfiguration = .current,
         session: URLSession = .shared,
         encoder: JSONEncoder = JSONEncoder(),
         decoder: JSONDecoder = JSONDecoder()

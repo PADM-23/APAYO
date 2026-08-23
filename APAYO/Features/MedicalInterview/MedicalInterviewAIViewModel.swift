@@ -76,10 +76,20 @@ final class MedicalInterviewAIViewModel {
         } else {
             selectedQuestionIDs.insert(questionID)
         }
+
+        summaryState = .idle
+        selectedCardAssetName = "SymptomCard_Default"
     }
 
     func generateMedicalSummary(context: MedicalInterviewContext) async {
         guard !summaryState.isLoading else { return }
+        guard case .success = summaryState else {
+            await requestMedicalSummary(context: context)
+            return
+        }
+    }
+
+    private func requestMedicalSummary(context: MedicalInterviewContext) async {
         guard case .success(let followUpResponse) = followUpState else {
             summaryState = .failure("먼저 추가 질문을 생성해 주세요.")
             return

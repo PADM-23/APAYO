@@ -11,10 +11,15 @@ struct AIFollowUpView: View {
             InterviewProgressLine(completedSteps: 4)
                 .padding(.top, 10)
 
-            Text("AI")
-                .font(.headline)
-                .foregroundStyle(Color.apayoGreen)
-                .padding(.top, 26)
+            Label {
+                Text(text("followup.ai_label"))
+                    .font(.headline)
+            } icon: {
+                Image(systemName: "sparkles.2")
+                    .font(.body)
+            }
+            .foregroundStyle(Color.apayoGreen)
+            .padding(.top, 26)
 
             Text(text("followup.title"))
                 .font(.title2.bold())
@@ -41,8 +46,7 @@ struct AIFollowUpView: View {
 
                 APAYOButton(
                     title: LocalizedStringKey(text("common.next")),
-                    isLoading: viewModel.summaryState.isLoading,
-                    action: submitSummary
+                    action: onNext
                 )
             }
         }
@@ -130,14 +134,6 @@ struct AIFollowUpView: View {
 
     private func isSelected(_ question: GeneratedFollowUpQuestion) -> Bool {
         viewModel.selectedQuestionIDs.contains(question.id)
-    }
-
-    private func submitSummary() {
-        Task {
-            await viewModel.generateMedicalSummary(context: context)
-            guard case .success = viewModel.summaryState else { return }
-            onNext()
-        }
     }
 
     private func text(_ key: String) -> String {
