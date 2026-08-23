@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "input": {
+    "text": "",
+    "language_hint": "tl"
+  },
+  "work_context": null,
+  "weather_context": null,
+  "allowed_card_ids": ["card_default"],
+  "allowed_question_ids": ["q_onset"]
+}
