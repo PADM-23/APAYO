@@ -17,6 +17,7 @@ enum PatientFlowRoute: Hashable {
     case accompanyingSymptoms
     case medicationInterview
     case aiFollowUp
+    case medicalSummaryLoading
     case medicalSummary
     case facilitySearch
 }

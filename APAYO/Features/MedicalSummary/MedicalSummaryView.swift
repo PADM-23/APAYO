@@ -83,7 +83,14 @@ struct MedicalSummaryView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 66)
                 .padding(.top, 28)
-                .padding(.bottom, 32)
+
+            HStack(spacing: 3) {
+                Image(systemName: "sparkles.2")
+                Text(localized("summary.ai_generated"))
+            }
+            .font(.subheadline)
+            .foregroundStyle(Color.apayoGray600)
+            .padding(.vertical, 12)
 
             Divider()
 
@@ -348,7 +355,8 @@ struct MedicalSummaryView: View {
                 )
                 basicInformationRow(
                     title: localized("summary.substance"),
-                    value: localizedAnswer(viewModel.substanceUse)
+                    value: localizedAnswer(viewModel.substanceUse),
+                    showsDivider: false
                 )
             }
             .padding(.horizontal, 19)
@@ -356,7 +364,11 @@ struct MedicalSummaryView: View {
         }
     }
 
-    private func basicInformationRow(title: String, value: String) -> some View {
+    private func basicInformationRow(
+        title: String,
+        value: String,
+        showsDivider: Bool = true
+    ) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Text(title)
                 .font(.body.weight(.semibold))
@@ -367,7 +379,9 @@ struct MedicalSummaryView: View {
         }
         .padding(.vertical, 10)
         .overlay(alignment: .bottom) {
-            Divider()
+            if showsDivider {
+                Divider()
+            }
         }
     }
 

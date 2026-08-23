@@ -160,6 +160,20 @@ struct PatientFlowView: View {
                 viewModel: aiViewModel,
                 context: medicalInterviewContext
             ) {
+                path.append(.medicalSummaryLoading)
+            }
+        case .medicalSummaryLoading:
+            SymptomAnalysisLoadingView(
+                onBack: { path.removeLast() },
+                animatesWaitText: true,
+                operation: {
+                    await aiViewModel.generateMedicalSummary(context: medicalInterviewContext)
+                    if case .success = aiViewModel.summaryState { return true }
+                    return false
+                },
+                onFailure: { path.removeLast() }
+            ) {
+                path.removeLast()
                 path.append(.medicalSummary)
             }
         case .medicalSummary:
