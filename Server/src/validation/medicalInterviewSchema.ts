@@ -62,6 +62,33 @@ function hasValidQuestionCollection(groups: Array<z.infer<typeof generatedQuesti
     return ids.length >= 2 && ids.length <= 4 && new Set(ids).size === ids.length;
 }
 
+function hasWorkEnvironmentQuestion(groups: Array<z.infer<typeof generatedQuestionGroupSchema>>): boolean {
+    return groups.some(group =>
+        group.questions.some(question => question.category === "work_environment")
+    );
+}
+
+function usesChecklistStatements(groups: Array<z.infer<typeof generatedQuestionGroupSchema>>): boolean {
+    return groups.every(group =>
+        group.questions.every(question =>
+            !question.prompt_user.includes("?") && !question.prompt_ko.includes("?")
+        )
+    );
+}
+
+const generatedQuestionGroupsSchema = z.array(generatedQuestionGroupSchema)
+    .min(1)
+    .max(2)
+    .refine(hasValidQuestionCollection, {
+        message: "question_groups must contain 2 to 4 unique questions"
+    })
+    .refine(hasWorkEnvironmentQuestion, {
+        message: "question_groups must contain at least one work_environment question"
+    })
+    .refine(usesChecklistStatements, {
+        message: "follow-up prompts must be checklist statements, not questions"
+    });
+
 export const followUpQuestionsRequestSchema = z.object({
     schema_version: z.literal("2.0"),
     context: medicalInterviewContextSchema
@@ -73,12 +100,7 @@ export const followUpQuestionsResponseSchema = z.object({
         code: z.string().trim().min(1).max(20),
         name: z.string().trim().min(1).max(100)
     }).strict(),
-    question_groups: z.array(generatedQuestionGroupSchema)
-        .min(1)
-        .max(2)
-        .refine(hasValidQuestionCollection, {
-            message: "question_groups must contain 2 to 4 unique questions"
-        }),
+    question_groups: generatedQuestionGroupsSchema,
     safety_flags: z.array(z.enum(SAFETY_FLAGS))
         .refine(flags => new Set(flags).size === flags.length, {
             message: "safety_flags must not contain duplicates"
@@ -95,12 +117,7 @@ const allowedCardIDsSchema = z.array(z.enum(CARD_IDS))
 export const medicalInterviewSummaryRequestSchema = z.object({
     schema_version: z.literal("2.0"),
     context: medicalInterviewContextSchema,
-    question_groups: z.array(generatedQuestionGroupSchema)
-        .min(1)
-        .max(2)
-        .refine(hasValidQuestionCollection, {
-            message: "question_groups must contain 2 to 4 unique questions"
-        }),
+    question_groups: generatedQuestionGroupsSchema,
     selected_follow_up_question_ids: z.array(z.enum(FOLLOW_UP_QUESTION_IDS))
         .max(4)
         .refine(ids => new Set(ids).size === ids.length, {

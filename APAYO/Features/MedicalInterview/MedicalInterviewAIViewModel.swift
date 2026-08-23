@@ -127,6 +127,18 @@ final class MedicalInterviewAIViewModel {
         selectedCardAssetName = "SymptomCard_Default"
     }
 
+    func selectedWorkEnvironmentStatements(korean: Bool) -> [String] {
+        guard case .success(let response) = followUpState else { return [] }
+
+        return response.questionGroups
+            .flatMap(\.questions)
+            .filter {
+                selectedQuestionIDs.contains($0.id)
+                    && ($0.category == .workEnvironment || $0.category == .exposure)
+            }
+            .map { korean ? $0.promptKo : $0.promptUser }
+    }
+
     private var generatedQuestionIDs: Set<FollowUpQuestionID> {
         guard case .success(let response) = followUpState else { return [] }
         return Set(response.questionGroups.flatMap(\.questions).map(\.id))
@@ -135,11 +147,19 @@ final class MedicalInterviewAIViewModel {
     private func validate(_ response: FollowUpQuestionsResponse) throws {
         let questions = response.questionGroups.flatMap(\.questions)
         let uniqueIDs = Set(questions.map(\.id))
+        let containsWorkEnvironmentQuestion = questions.contains {
+            $0.category == .workEnvironment
+        }
+        let usesChecklistStatements = questions.allSatisfy {
+            !$0.promptUser.contains("?") && !$0.promptKo.contains("?")
+        }
 
         guard response.schemaVersion == "2.0",
               (1...2).contains(response.questionGroups.count),
               (2...4).contains(questions.count),
               uniqueIDs.count == questions.count,
+              containsWorkEnvironmentQuestion,
+              usesChecklistStatements,
               questions.allSatisfy({ $0.answerType == .checkboxYes }) else {
             throw MedicalInterviewClientError.invalidFollowUpResponse
         }

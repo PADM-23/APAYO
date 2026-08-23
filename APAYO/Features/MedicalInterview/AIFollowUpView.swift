@@ -64,7 +64,12 @@ struct AIFollowUpView: View {
     private var followUpContent: some View {
         switch viewModel.followUpState {
         case .idle, .loading:
-            ProgressView()
+            VStack(spacing: 14) {
+                ProgressView()
+                Text(text("loading.wait"))
+                    .font(.body)
+                    .foregroundStyle(Color.apayoGray800)
+            }
                 .frame(maxWidth: .infinity)
         case .failure(let message):
             VStack(spacing: 16) {
@@ -120,7 +125,7 @@ struct AIFollowUpView: View {
                         .frame(width: 27, height: 27)
 
                         Text(question.promptUser)
-                            .font(.callout)
+                            .font(.body)
                             .foregroundStyle(Color.primary)
                             .multilineTextAlignment(.leading)
                             .frame(maxWidth: .infinity, alignment: .leading)
