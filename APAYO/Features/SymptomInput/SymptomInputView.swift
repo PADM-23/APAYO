@@ -6,6 +6,8 @@ struct SymptomInputView: View {
     let onNeedGuidance: () -> Void
     let onNext: () -> Void
 
+    @FocusState private var isSymptomFieldFocused: Bool
+
     var body: some View {
         VStack(spacing: 0) {
             Spacer().frame(height: 40)
@@ -51,12 +53,18 @@ struct SymptomInputView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(Array(suggestionItems.enumerated()), id: \.offset) { _, item in
-                        Text(item)
-                            .font(.subheadline)
-                            .fixedSize(horizontal: true, vertical: false)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 8)
-                            .background(.white.opacity(0.7), in: Capsule())
+                        Button {
+                            symptom = item
+                        } label: {
+                            Text(item)
+                                .font(.subheadline)
+                                .foregroundStyle(Color.primary)
+                                .fixedSize(horizontal: true, vertical: false)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 8)
+                                .background(.white.opacity(0.7), in: Capsule())
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
                 .padding(.horizontal, APAYOTheme.horizontalPadding)
@@ -70,6 +78,7 @@ struct SymptomInputView: View {
                     axis: .vertical
                 )
                     .font(.body)
+                    .focused($isSymptomFieldFocused)
                     .lineLimit(1...4)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 14)
@@ -90,7 +99,10 @@ struct SymptomInputView: View {
 
             Spacer(minLength: 24)
 
-            Button(action: onNeedGuidance) {
+            Button {
+                isSymptomFieldFocused = false
+                onNeedGuidance()
+            } label: {
                 HStack(spacing: 14) {
                     Image(systemName: "safari.fill")
                         .font(.system(size: 20, weight: .semibold))
@@ -147,6 +159,17 @@ struct SymptomInputView: View {
             .ignoresSafeArea()
         }
         .toolbar(.hidden, for: .navigationBar)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button(languageStore.language.localized("common.confirm")) {
+                    isSymptomFieldFocused = false
+                }
+            }
+        }
+        .onAppear {
+            isSymptomFieldFocused = false
+        }
     }
 
     private var suggestionItems: [String] {

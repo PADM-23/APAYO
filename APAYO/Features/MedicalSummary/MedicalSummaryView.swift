@@ -21,29 +21,29 @@ struct MedicalSummaryView: View {
         .navigationTitle(localized("summary.navigation"))
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 8) {
-                HStack(spacing: 6) {
-                    Button {
-                        Task { await saveSummaryImage() }
-                    } label: {
-                        Image(systemName: "square.and.arrow.down.fill")
-                            .font(.title2.bold())
-                            .foregroundStyle(.white)
-                            .frame(width: 64, height: 64)
-                            .background(Color.apayoGreen, in: RoundedRectangle(cornerRadius: 24))
-                    }
-
-                    APAYOButton(
-                        title: LocalizedStringKey(localized("summary.find_facility")),
-                        action: onFindFacility
-                    )
+            HStack(spacing: 6) {
+                Button {
+                    Task { await saveSummaryImage() }
+                } label: {
+                    Image(systemName: "square.and.arrow.down.fill")
+                        .font(.title2.bold())
+                        .foregroundStyle(.white)
+                        .frame(width: 64, height: 64)
+                        .background(Color.apayoGreen, in: RoundedRectangle(cornerRadius: 24))
                 }
 
+                Button(action: onBackToSymptomInput) {
+                    Image(systemName: "house.fill")
+                        .font(.title2.bold())
+                        .foregroundStyle(.white)
+                        .frame(width: 64, height: 64)
+                        .background(Color.apayoGreen, in: RoundedRectangle(cornerRadius: 24))
+                }
+                .accessibilityLabel(localized("summary.back_to_symptom_input"))
+
                 APAYOButton(
-                    title: LocalizedStringKey(localized("summary.back_to_symptom_input")),
-                    systemImage: "arrow.counterclockwise",
-                    style: .secondary,
-                    action: onBackToSymptomInput
+                    title: LocalizedStringKey(localized("summary.find_facility")),
+                    action: onFindFacility
                 )
             }
             .padding(.horizontal, 21)
@@ -119,12 +119,12 @@ struct MedicalSummaryView: View {
 
                 summarySection(title: localized("summary.environment")) {
                     VStack(alignment: .leading, spacing: 15) {
-                        ForEach(viewModel.workEnvironment.selectedConditions.sorted(), id: \.self) { condition in
-                            Text(localizedAnswer(condition))
+                        ForEach(displayedWorkEnvironment, id: \.self) { condition in
+                            Text(condition)
                                 .font(.callout)
                         }
 
-                        if viewModel.workEnvironment.selectedConditions.isEmpty {
+                        if displayedWorkEnvironment.isEmpty {
                             Text(localized("summary.no_environment"))
                                 .font(.callout)
                         }
@@ -145,6 +145,14 @@ struct MedicalSummaryView: View {
             get: { saveAlertKey != nil },
             set: { if !$0 { saveAlertKey = nil } }
         )
+    }
+
+    private var displayedWorkEnvironment: [String] {
+        let baseAnswers = viewModel.workEnvironment.selectedConditions
+            .map(localizedAnswer)
+        let aiAnswers = aiViewModel.selectedWorkEnvironmentStatements(korean: showsKorean)
+
+        return Array(Set(baseAnswers + aiAnswers)).sorted()
     }
 
     @MainActor

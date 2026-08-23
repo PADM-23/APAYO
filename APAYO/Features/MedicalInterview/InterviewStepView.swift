@@ -218,9 +218,11 @@ struct MultiChoiceInterviewView: View {
                             }
                             Text(display(option))
                                 .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                         .font(.body.weight(.semibold))
                         .foregroundStyle(Color.primary)
+                        .padding(.horizontal, 8)
                         .frame(maxWidth: .infinity, minHeight: 98)
                         .background(selections.contains(option) ? Color.apayoBackground : Color.apayoGray100)
                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))

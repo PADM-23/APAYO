@@ -98,6 +98,7 @@ struct MedicalHistoryOnboardingView: View {
             .foregroundStyle(Color.primary)
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 8)
             .frame(maxWidth: .infinity, minHeight: cardHeight)
             .padding(.vertical, 8)
             .background(selections.contains(option) ? Color.apayoBackground : Color.apayoGray100)
