@@ -63,11 +63,17 @@ struct SymptomInputView: View {
             }
             .frame(maxWidth: .infinity)
 
-            HStack(spacing: 8) {
-                TextField(languageStore.language.localized("symptom.placeholder"), text: $symptom)
+            HStack(alignment: .bottom, spacing: 8) {
+                TextField(
+                    languageStore.language.localized("symptom.placeholder"),
+                    text: $symptom,
+                    axis: .vertical
+                )
                     .font(.body)
+                    .lineLimit(1...4)
                     .padding(.horizontal, 20)
-                    .frame(height: 50)
+                    .padding(.vertical, 14)
+                    .frame(minHeight: 50, alignment: .topLeading)
                     .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 16))
 
                 Button(action: onNext) {
@@ -124,18 +130,19 @@ struct SymptomInputView: View {
             Spacer().frame(height: 24)
         }
         .background {
-            ZStack {
-                Color(.systemBackground)
-                RadialGradient(
-                    colors: [
-                        Color.apayoBrightGreen.opacity(0.62),
-                        Color.apayoYellow.opacity(0.42),
-                        Color.clear
-                    ],
-                    center: UnitPoint(x: 0.5, y: 0.43),
-                    startRadius: 18,
-                    endRadius: 230
-                )
+            GeometryReader { geometry in
+                ZStack {
+                    Color.apayoBackground
+
+                    Image("SymptomInputBackground")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(
+                            width: geometry.size.width,
+                            height: geometry.size.height
+                        )
+                        .clipped()
+                }
             }
             .ignoresSafeArea()
         }
